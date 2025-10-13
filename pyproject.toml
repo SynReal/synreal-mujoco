@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name="mujoco_style3d"
+version = "0.0.1"
+authors = [
+    {name = "Style3D", email = "sales@style3d.com"},
+]
+description = "MuJoCo Style3D Simulator(MJStyle3D)"
+readme = {file = "README.md", content-type = "text/markdown"}
+license = { text = "Commercial license. Contact sales@style3d.com for licensing." }
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "mujoco",
+    "numpy",
+    "warp-lang",
+]
+
+[project.urls]
+Homepage = "https://github.com/Style3D/mujoco_style3d"
+Repository = "https://github.com/Style3D/mujoco_style3d"
+
+[tool.setuptools.packages.find]
+include = ["mujoco_style3d*"]
