@@ -1,2 +1,4 @@
+import style3dsim
 
-print("hello there!")
+
+print("hello there! {}",style3dsim.is_login())
