@@ -6,6 +6,9 @@ import numpy as np
 import mujoco
 import mujoco.viewer
 
+import threading
+
+
 import mj_to_sim
 
 def log_callback(file_name: str, func_name: str, line: int, level: sim.LogLevel, message: str):
@@ -49,21 +52,52 @@ world.set_attrib(world_attrib)
 
 cloth.attach(world)
 
-with mujoco.viewer.launch_passive(m, d) as viewer:
+
+flush_result_to_ui = False
+lock=threading.Lock()
+
+def run_sim():
+    duration=0
     while True:
+        # mj_step can be replaced with code that also evaluates
+        # a policy and applies a control signal before stepping the physics.
         begin0_t = time.time()
         mujoco.mj_step(m, d)
-
         begin1_t = time.time()
         world.step_sim()
         end1_t = time.time()
-        duration1 = end1_t - begin1_t
-
         world.fetch_sim(0)
         x = cloth.get_positions()
-        mj_to_sim.set_positions(m, d, 'cloth', x)
-        viewer.sync()
-
         end0_t = time.time()
         duration0 = end0_t - begin0_t
-        print("fps = ", 1. / duration0, 1. / duration1)
+        duration1 = end1_t - begin1_t
+        duration+=duration0
+        if duration>1.0:
+            duration-=1.0
+            with lock:
+                mj_to_sim.set_positions(m, d, 'cloth', x)
+                global flush_result_to_ui
+                flush_result_to_ui = True
+        end0_t = time.time()
+        duration0 = end0_t - begin0_t
+        print("fps = ", 1./duration0, 1./duration1,'duration:',duration)
+
+
+def update_ui():
+    with mujoco.viewer.launch_passive(m, d) as viewer:
+        while True:
+            with lock:
+                global flush_result_to_ui
+                if flush_result_to_ui:
+                    viewer.sync()
+                    flush_result_to_ui = False
+
+
+t = threading.Thread(target=run_sim)
+t.start()
+
+t1=threading.Thread(target=update_ui)
+t1.start()
+
+t1.join()
+t.join()
