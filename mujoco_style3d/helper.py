@@ -41,6 +41,7 @@ def get_a_sim_world():
     world_attrib = sim.WorldAttrib()
     world_attrib.enable_gpu = True
     world_attrib.gravity = sim.Vec3f(0, 0, -9.81)
+    world_attrib.ground_direction = sim.Vec3f(0., 0., 1.)
     world_attrib.time_step = 0.01
     world.set_attrib(world_attrib)
     return world
