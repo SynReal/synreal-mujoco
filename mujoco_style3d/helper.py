@@ -23,6 +23,28 @@ def _add_piece_to_sim(x,t,name,world,sim_pieces,piece_names):
     sim_pieces.append(cloth)
     piece_names.append(name)
 
+def _add_rigid_body_to_sim(i, x, t,transform, world, rigid_bodies):
+
+    mesh = sim.Mesh(t, x)
+
+    rigid_body = sim.RigidBody(mesh,transform)
+
+    rigid_body_attrib = sim.RigidBodyAttrib()
+    rigid_body_attrib.dynamic_friction = 0.03
+    rigid_body_attrib.static_friction = 0.03
+    rigid_body_attrib.mass = 3e-2
+
+    rigid_body.set_attrib(rigid_body_attrib)
+
+    rigid_body.set_pin(True)
+
+    rigid_body.attach(world)
+
+    rigid_bodies.append(rigid_body)
+
+def _set_rigid_body_to_sim(i, x, t, transform, world,rigid_bodies,last_rigid_body_transform):
+    rigid_bodies[i].move(last_rigid_body_transform[i],transform)
+
 
 def _log_callback(file_name: str, func_name: str, line: int, level: sim.LogLevel, message: str):
     if level == sim.LogLevel.INFO:
@@ -42,7 +64,8 @@ def get_a_sim_world():
     world_attrib.enable_gpu = True
     world_attrib.gravity = sim.Vec3f(0, 0, -9.81)
     world_attrib.ground_direction = sim.Vec3f(0., 0., 1.)
-    world_attrib.time_step = 0.01
+    world_attrib.time_step = 0.001
+    world_attrib.enable_rigid_self_collision = False
     world.set_attrib(world_attrib)
     return world
 
@@ -51,6 +74,7 @@ def load_data(xml_path):
     m = mujoco.MjModel.from_xml_path(xml_path)
     d = mujoco.MjData(m)
     mujoco.mj_forward(m, d)  # so that d is populated by m
+
     return m,d
 
 def add_piece_to_sim(m,d,world):
@@ -60,7 +84,19 @@ def add_piece_to_sim(m,d,world):
     mj_to_sim.for_each_piece(m, d, add_piece)
     return sim_pieces,piece_names
 
-def set_piece_to_mujoco(m,d,sim_pieces,piece_names):
+
+def add_rigid_body_to_sim(m, d, world):
+    objects = []
+
+    mj_to_sim.for_each_rigid_meshes(m, d, lambda i,x,t,transform:_add_rigid_body_to_sim(i,x,t,transform,world,objects))
+
+    return  objects
+
+def set_piece_pos_to_mujoco(m, d, sim_pieces,piece_names):
     for cloth, cloth_name in zip(sim_pieces, piece_names):
         x = cloth.get_positions()
         mj_to_sim.set_positions(m, d, cloth_name, x)
+
+def set_rigid_body_pos_to_sim(m, d, world, rigid_bodies):
+    last_rigid_body_transform = [rb.get_transform() for rb in rigid_bodies]
+    mj_to_sim.for_each_rigid_meshes(m, d, lambda i,x,t,transform:_set_rigid_body_to_sim(i,x,t,transform,world,rigid_bodies, last_rigid_body_transform))

@@ -1,4 +1,4 @@
-import style3dsim
+import style3dsim as sim
 import mujoco
 import numpy as np
 
@@ -56,6 +56,10 @@ def _set_flex_vertices(m: mujoco.MjModel, d: mujoco.MjData, flex_name: str, vert
     _set_pos(id,m,d, verts)
 
 
+def _get_geo_num(m: mujoco.MjModel):
+    return _mj_get_attr(m, "ngeom")
+
+
 def for_each_piece(m: mujoco.MjModel,d: mujoco.MjData,fn):
     vert_num = _get_vert_num_buffer(m)
 
@@ -71,6 +75,64 @@ def for_each_piece(m: mujoco.MjModel,d: mujoco.MjData,fn):
         name = mujoco.mj_id2name(m, mujoco.mjtObj.mjOBJ_FLEX, i)
         fn(x,t,name)
 
+def for_each_rigid_meshes(m: mujoco.MjModel,d: mujoco.MjData, fn):
+    mesh_ids = _mj_get_attr(m, "geom_dataid")
+    geom_type = _mj_get_attr(m, "geom_type")
+    mesh_graph_begin = _mj_get_attr(m, "mesh_graphadr")
+
+    sloti=0
+    for i in range(_get_geo_num(m)):
+
+        mesh_id = mesh_ids[i]
+
+        if mesh_id < 0:
+            continue
+        if geom_type[i] != mujoco.mjtGeom.mjGEOM_MESH:
+            continue
+
+        if  mesh_graph_begin[mesh_id] < 0:
+            continue
+
+        mesh_face =_mj_get_attr(m, "mesh_face" )
+        face_begin =_mj_get_attr(m, "mesh_faceadr" )
+        face_num =_mj_get_attr(m, "mesh_facenum" )
+
+        mesh_vert=_mj_get_attr(m, "mesh_vert" )
+        vert_begin=_mj_get_attr(m, "mesh_vertadr" )
+        vert_num=_mj_get_attr(m, "mesh_vertnum" )
+
+        v_begin = vert_begin[mesh_id]
+        v_end = vert_begin[mesh_id]+vert_num[mesh_id]
+        x = mesh_vert[v_begin:v_end,:]
+
+        t_begin = face_begin[mesh_id]
+        t_end = face_begin[mesh_id]+face_num[mesh_id]
+        t = mesh_face[t_begin:t_end,:]
+
+        xmat =_mj_get_attr(d, "geom_xmat" )
+        xpos =_mj_get_attr(d, "geom_xpos" )
+
+        geo_pos = xpos[i]
+        geo_mat = xmat[i]
+
+        transform = sim.Transform()
+        transform.translation.x = geo_pos[0]
+        transform.translation.y = geo_pos[1]
+        transform.translation.z = geo_pos[2]
+
+        transform.scale = sim.Vec3f(1,1,1)
+
+        mat = sim.Matrix3f(
+            sim.Vec3f(geo_mat[0],geo_mat[3],geo_mat[6]),
+            sim.Vec3f(geo_mat[1],geo_mat[4],geo_mat[7]),
+            sim.Vec3f(geo_mat[2],geo_mat[5],geo_mat[8])
+        )
+
+        transform.rotation= sim.Quat(mat)
+
+        fn(sloti,x,t,transform)
+
+        sloti += 1
 
 def set_positions(m: mujoco.MjModel, d: mujoco.MjData,mesh_name,x):
     _set_flex_vertices(m,d,mesh_name,x)
