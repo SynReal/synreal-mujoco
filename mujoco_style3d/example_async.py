@@ -75,7 +75,7 @@ def run_sim():
         if duration>1.0:
             duration-=1.0
             with lock:
-                mj_to_sim.set_positions(m, d, 'cloth', x)
+                mj_to_sim.set_piece_positions(m, d, 'cloth', x)
                 global flush_result_to_ui
                 flush_result_to_ui = True
         end0_t = time.time()

@@ -13,47 +13,69 @@ def _mj_get_attr(obj, *names):
             return getattr(obj, n)
     raise AttributeError(f"None of attributes present: {names}")
 
-def _get_pos_buffer(d: mujoco.MjData):
+##############
+def _get_flex_pos_buffer(d: mujoco.MjData):
     #return _mj_get_attr(d,  "flex_xpos")
     return _mj_get_attr(d, "flexvert_xpos" )
 
-def _get_vert_num_buffer(m: mujoco.MjModel):
+def _get_flex_vert_num_buffer(m: mujoco.MjModel):
     return _mj_get_attr(m, "flex_vertnum" )
 
-def _get_vert_offset_buffer(m: mujoco.MjModel):
+def _get_flex_vert_offset_buffer(m: mujoco.MjModel):
     return _mj_get_attr(m, "flex_vertadr" )
 
-def _get_pos(id,m: mujoco.MjModel, d: mujoco.MjData):
-    x = _get_pos_buffer(d);
-    offset = _get_vert_offset_buffer(m)
-    num = _get_vert_num_buffer(m)
+def _get_flex_pos(id, m: mujoco.MjModel, d: mujoco.MjData):
+    x = _get_flex_pos_buffer(d);
+    offset = _get_flex_vert_offset_buffer(m)
+    num = _get_flex_vert_num_buffer(m)
     return x[ offset[id] : offset[id]+num[id] - Flexible.EXTRA_VERTEX_BY_STYLE3D_AT_END] [:]
 
-def _set_pos(id,m: mujoco.MjModel, d: mujoco.MjData,verts):
-    x = _get_pos_buffer(d);
-    offset = _get_vert_offset_buffer(m)
-    num = _get_vert_num_buffer(m)
+def _set_flex_pos(id, m: mujoco.MjModel, d: mujoco.MjData, verts):
+    x = _get_flex_pos_buffer(d);
+    offset = _get_flex_vert_offset_buffer(m)
+    num = _get_flex_vert_num_buffer(m)
     x[ offset[id] : offset[id]+num[id] - Flexible.EXTRA_VERTEX_BY_STYLE3D_AT_END] [:] = verts
 
 
-def _get_tri_buffer(m: mujoco.MjModel):
+def _get_flex_tri_buffer(m: mujoco.MjModel):
     return _mj_get_attr(m, "flex_elem")
 
-def _get_tri_offset(m: mujoco.MjModel):
+def _get_flex_tri_offset_buffer(m: mujoco.MjModel):
     return _mj_get_attr(m, "flex_elemadr")
 
-def _get_tri_num_buffer(m: mujoco.MjModel):
+def _get_flex_tri_num_buffer(m: mujoco.MjModel):
     return _mj_get_attr(m, "flex_elemnum")
 
-def _get_tri(id,m: mujoco.MjModel):
-    offset=_get_tri_offset(m)[id]
-    num=_get_tri_num_buffer(m)[id]
-    return _get_tri_buffer(m )[offset*3:(offset+num)*3].reshape(-1, 3)
+def _get_flex_tri(id, m: mujoco.MjModel):
+    offset=_get_flex_tri_offset_buffer(m)[id]
+    num=_get_flex_tri_num_buffer(m)[id]
+    return _get_flex_tri_buffer(m)[offset * 3:(offset + num) * 3].reshape(-1, 3)
 
 
 def _set_flex_vertices(m: mujoco.MjModel, d: mujoco.MjData, flex_name: str, verts: np.ndarray) -> None:
     id = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_FLEX, flex_name)
-    _set_pos(id,m,d, verts)
+    _set_flex_pos(id, m, d, verts)
+
+##############
+def _get_mesh_pos(id,m: mujoco.MjModel):
+    mesh_vert = _mj_get_attr(m, "mesh_vert")
+    vert_begin = _mj_get_attr(m, "mesh_vertadr")
+    vert_num = _mj_get_attr(m, "mesh_vertnum")
+
+    v_begin = vert_begin[id]
+    v_end = vert_begin[id] + vert_num[id]
+    x = mesh_vert[v_begin:v_end, :]
+    return x
+
+def _get_mesh_tri(id, m: mujoco.MjModel):
+    mesh_face = _mj_get_attr(m, "mesh_face")
+    face_begin = _mj_get_attr(m, "mesh_faceadr")
+    face_num = _mj_get_attr(m, "mesh_facenum")
+
+    t_begin = face_begin[id]
+    t_end = face_begin[id] + face_num[id]
+    t = mesh_face[t_begin:t_end, :]
+    return t
 
 
 def _get_geo_num(m: mujoco.MjModel):
@@ -61,7 +83,7 @@ def _get_geo_num(m: mujoco.MjModel):
 
 
 def for_each_piece(m: mujoco.MjModel,d: mujoco.MjData,fn):
-    vert_num = _get_vert_num_buffer(m)
+    vert_num = _get_flex_vert_num_buffer(m)
 
     num_flex = getattr(m, "nflex", 0)
 
@@ -70,8 +92,8 @@ def for_each_piece(m: mujoco.MjModel,d: mujoco.MjData,fn):
 
     for i in range(len(vert_num)):
 
-        x = _get_pos(i,m,d)
-        t = _get_tri(i,m)
+        x = _get_flex_pos(i, m, d)
+        t = _get_flex_tri(i, m)
         name = mujoco.mj_id2name(m, mujoco.mjtObj.mjOBJ_FLEX, i)
         fn(x,t,name)
 
@@ -80,7 +102,7 @@ def for_each_rigid_meshes(m: mujoco.MjModel,d: mujoco.MjData, fn):
     geom_type = _mj_get_attr(m, "geom_type")
     mesh_graph_begin = _mj_get_attr(m, "mesh_graphadr")
 
-    sloti=0
+    sloti = 0
     for i in range(_get_geo_num(m)):
 
         mesh_id = mesh_ids[i]
@@ -93,21 +115,9 @@ def for_each_rigid_meshes(m: mujoco.MjModel,d: mujoco.MjData, fn):
         if  mesh_graph_begin[mesh_id] < 0:
             continue
 
-        mesh_face =_mj_get_attr(m, "mesh_face" )
-        face_begin =_mj_get_attr(m, "mesh_faceadr" )
-        face_num =_mj_get_attr(m, "mesh_facenum" )
 
-        mesh_vert=_mj_get_attr(m, "mesh_vert" )
-        vert_begin=_mj_get_attr(m, "mesh_vertadr" )
-        vert_num=_mj_get_attr(m, "mesh_vertnum" )
-
-        v_begin = vert_begin[mesh_id]
-        v_end = vert_begin[mesh_id]+vert_num[mesh_id]
-        x = mesh_vert[v_begin:v_end,:]
-
-        t_begin = face_begin[mesh_id]
-        t_end = face_begin[mesh_id]+face_num[mesh_id]
-        t = mesh_face[t_begin:t_end,:]
+        t=_get_mesh_tri(mesh_id, m)
+        x=_get_mesh_pos(mesh_id, m)
 
         xmat =_mj_get_attr(d, "geom_xmat" )
         xpos =_mj_get_attr(d, "geom_xpos" )
@@ -128,12 +138,12 @@ def for_each_rigid_meshes(m: mujoco.MjModel,d: mujoco.MjData, fn):
             sim.Vec3f(geo_mat[2],geo_mat[5],geo_mat[8])
         )
 
-        transform.rotation= sim.Quat(mat)
+        transform.rotation = sim.Quat(mat)
 
         fn(sloti,x,t,transform)
 
         sloti += 1
 
-def set_positions(m: mujoco.MjModel, d: mujoco.MjData,mesh_name,x):
+def set_piece_positions(m: mujoco.MjModel, d: mujoco.MjData, mesh_name, x):
     _set_flex_vertices(m,d,mesh_name,x)
 

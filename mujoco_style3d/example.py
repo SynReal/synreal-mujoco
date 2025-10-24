@@ -23,9 +23,10 @@ world = helper.get_a_sim_world()
 sim_pieces, piece_names = helper.add_piece_to_sim(m,d,world)
 rigid_bodies = helper.add_rigid_body_to_sim(m,d,world)
 
-with mujoco.viewer.launch_passive(m, d) as viewer:
+with mujoco.viewer.launch_passive(m,d) as viewer:
 
-    while True:
+    while viewer.is_running():
+
         begin0_t = time.time()
         mujoco.mj_step(m, d)
 

@@ -95,7 +95,7 @@ def add_rigid_body_to_sim(m, d, world):
 def set_piece_pos_to_mujoco(m, d, sim_pieces,piece_names):
     for cloth, cloth_name in zip(sim_pieces, piece_names):
         x = cloth.get_positions()
-        mj_to_sim.set_positions(m, d, cloth_name, x)
+        mj_to_sim.set_piece_positions(m, d, cloth_name, x)
 
 def set_rigid_body_pos_to_sim(m, d, world, rigid_bodies):
     last_rigid_body_transform = [rb.get_transform() for rb in rigid_bodies]
