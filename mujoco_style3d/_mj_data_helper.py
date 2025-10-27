@@ -1,0 +1,149 @@
+import style3dsim as sim
+import mujoco
+import numpy as np
+
+
+class Flexible:
+    # This is a dummy class to hold constants from gx_utils.dtype.Flexible
+    EXTRA_VERTEX_BY_STYLE3D_AT_END = 1
+
+def _mj_get_attr(obj, *names):
+    for n in names:
+        if hasattr(obj, n):
+            return getattr(obj, n)
+    raise AttributeError(f"None of attributes present: {names}")
+
+##############
+def _get_flex_pos_buffer(d: mujoco.MjData):
+    #return _mj_get_attr(d,  "flex_xpos")
+    return _mj_get_attr(d, "flexvert_xpos" )
+
+def _get_flex_vert_num_buffer(m: mujoco.MjModel):
+    return _mj_get_attr(m, "flex_vertnum" )
+
+def _get_flex_vert_offset_buffer(m: mujoco.MjModel):
+    return _mj_get_attr(m, "flex_vertadr" )
+
+def _get_flex_pos(id, m: mujoco.MjModel, d: mujoco.MjData):
+    x = _get_flex_pos_buffer(d);
+    offset = _get_flex_vert_offset_buffer(m)
+    num = _get_flex_vert_num_buffer(m)
+    return x[ offset[id] : offset[id]+num[id] - Flexible.EXTRA_VERTEX_BY_STYLE3D_AT_END] [:]
+
+def _set_flex_pos(id, m: mujoco.MjModel, d: mujoco.MjData, verts):
+    x = _get_flex_pos_buffer(d);
+    offset = _get_flex_vert_offset_buffer(m)
+    num = _get_flex_vert_num_buffer(m)
+    x[ offset[id] : offset[id]+num[id] - Flexible.EXTRA_VERTEX_BY_STYLE3D_AT_END] [:] = verts
+
+
+def _get_flex_tri_buffer(m: mujoco.MjModel):
+    return _mj_get_attr(m, "flex_elem")
+
+def _get_flex_tri_offset_buffer(m: mujoco.MjModel):
+    return _mj_get_attr(m, "flex_elemadr")
+
+def _get_flex_tri_num_buffer(m: mujoco.MjModel):
+    return _mj_get_attr(m, "flex_elemnum")
+
+def _get_flex_tri(id, m: mujoco.MjModel):
+    offset=_get_flex_tri_offset_buffer(m)[id]
+    num=_get_flex_tri_num_buffer(m)[id]
+    return _get_flex_tri_buffer(m)[offset * 3:(offset + num) * 3].reshape(-1, 3)
+
+
+def _set_flex_vertices(m: mujoco.MjModel, d: mujoco.MjData, flex_name: str, verts: np.ndarray) -> None:
+    id = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_FLEX, flex_name)
+    _set_flex_pos(id, m, d, verts)
+
+##############
+def _get_mesh_pos(id,m: mujoco.MjModel):
+    mesh_vert = _mj_get_attr(m, "mesh_vert")
+    vert_begin = _mj_get_attr(m, "mesh_vertadr")
+    vert_num = _mj_get_attr(m, "mesh_vertnum")
+
+    v_begin = vert_begin[id]
+    v_end = vert_begin[id] + vert_num[id]
+    x = mesh_vert[v_begin:v_end, :]
+    return x
+
+def _get_mesh_tri(id, m: mujoco.MjModel):
+    mesh_face = _mj_get_attr(m, "mesh_face")
+    face_begin = _mj_get_attr(m, "mesh_faceadr")
+    face_num = _mj_get_attr(m, "mesh_facenum")
+
+    t_begin = face_begin[id]
+    t_end = face_begin[id] + face_num[id]
+    t = mesh_face[t_begin:t_end, :]
+    return t
+
+
+def _get_geo_num(m: mujoco.MjModel):
+    return _mj_get_attr(m, "ngeom")
+
+
+def for_each_piece(m: mujoco.MjModel,d: mujoco.MjData,fn):
+    vert_num = _get_flex_vert_num_buffer(m)
+
+    num_flex = getattr(m, "nflex", 0)
+
+    if num_flex!=len(vert_num):
+        return
+
+    for i in range(len(vert_num)):
+
+        x = _get_flex_pos(i, m, d)
+        t = _get_flex_tri(i, m)
+        name = mujoco.mj_id2name(m, mujoco.mjtObj.mjOBJ_FLEX, i)
+        fn(x,t,name)
+
+def for_each_rigid_meshes(m: mujoco.MjModel,d: mujoco.MjData, fn):
+    mesh_ids = _mj_get_attr(m, "geom_dataid")
+    geom_type = _mj_get_attr(m, "geom_type")
+    mesh_graph_begin = _mj_get_attr(m, "mesh_graphadr")
+
+    sloti = 0
+    for i in range(_get_geo_num(m)):
+
+        mesh_id = mesh_ids[i]
+
+        if mesh_id < 0:
+            continue
+        if geom_type[i] != mujoco.mjtGeom.mjGEOM_MESH:
+            continue
+
+        if  mesh_graph_begin[mesh_id] < 0:
+            continue
+
+
+        t=_get_mesh_tri(mesh_id, m)
+        x=_get_mesh_pos(mesh_id, m)
+
+        xmat =_mj_get_attr(d, "geom_xmat" )
+        xpos =_mj_get_attr(d, "geom_xpos" )
+
+        geo_pos = xpos[i]
+        geo_mat = xmat[i]
+
+        transform = sim.Transform()
+        transform.translation.x = geo_pos[0]
+        transform.translation.y = geo_pos[1]
+        transform.translation.z = geo_pos[2]
+
+        transform.scale = sim.Vec3f(1,1,1)
+
+        mat = sim.Matrix3f(
+            sim.Vec3f(geo_mat[0],geo_mat[3],geo_mat[6]),
+            sim.Vec3f(geo_mat[1],geo_mat[4],geo_mat[7]),
+            sim.Vec3f(geo_mat[2],geo_mat[5],geo_mat[8])
+        )
+
+        transform.rotation = sim.Quat(mat)
+
+        fn(sloti,x,t,transform)
+
+        sloti += 1
+
+def set_piece_positions(m: mujoco.MjModel, d: mujoco.MjData, mesh_name, x):
+    _set_flex_vertices(m,d,mesh_name,x)
+
