@@ -42,7 +42,7 @@ def _add_rigid_body_to_sim(i, x, t,transform, world, rigid_bodies):
 
     rigid_bodies.append(rigid_body)
 
-def _set_rigid_body_to_sim(i, x, t, transform, world,rigid_bodies,last_rigid_body_transform):
+def _set_rigid_body_to_sim(i, x, t, transform, rigid_bodies,last_rigid_body_transform):
     rigid_bodies[i].move(last_rigid_body_transform[i],transform)
 
 
@@ -97,7 +97,7 @@ def set_piece_pos_to_mujoco(m, d, sim_pieces,piece_names):
         x = cloth.get_positions()
         _mj_data_helper.set_piece_positions(m, d, cloth_name, x)
 
-def set_rigid_body_pos_to_sim(m, d, world, rigid_bodies):
+def set_rigid_body_pos_to_sim(m, d,  rigid_bodies):
     last_rigid_body_transform = [rb.get_transform() for rb in rigid_bodies]
-    _mj_data_helper.for_each_rigid_meshes(m, d, lambda i,x,t,transform:_set_rigid_body_to_sim(i,x,t,transform,world,rigid_bodies, last_rigid_body_transform))
+    _mj_data_helper.for_each_rigid_meshes(m, d, lambda i, x, t, transform : _set_rigid_body_to_sim(i,x,t,transform,rigid_bodies, last_rigid_body_transform))
 
