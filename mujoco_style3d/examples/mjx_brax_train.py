@@ -182,14 +182,14 @@ def update(fi):
     ax.imshow(frames[fi])
 
 ani = animation.FuncAnimation(fig, update, len(frames), interval=100 )
-video_file='animation_drawing.gif'
+video_file='./trianed_model/humanoid_walk/before_train.gif'
 ani.save(video_file, writer='imagemagick', fps=60)
 print(f'save video to {video_file} !')
 
 
 train=False
 
-model_path = './tmp/mjx_brax_policy/my_model'
+model_path = './trianed_model/humanoid_walk/humanoid_walk'
 
 if train:
     train_fn = functools.partial(
@@ -282,6 +282,6 @@ def update(fi):
     ax.imshow(frames[fi])
 
 ani = animation.FuncAnimation(fig, update, len(frames), interval = 100 )
-video_file='roll_out.gif'
+video_file='./trianed_model/humanoid_walk/roll_out.gif'
 ani.save(video_file, writer='imagemagick', fps=60)
 print(f'save video to {video_file} !')
