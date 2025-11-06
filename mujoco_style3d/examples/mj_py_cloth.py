@@ -18,30 +18,6 @@ world = s3d_mj.get_a_sim_world()
 sim_pieces, piece_names = s3d_mj.add_piece_to_sim(m, d, world)
 rigid_bodies = s3d_mj.add_rigid_body_to_sim(m, d, world)
 
-print(' begin without ui ...')
-
-fi = 0
-while fi < 100:
-    begin0_t = time.time()
-
-    begin1_t = time.time()
-    s3d_mj.set_rigid_body_pos_to_sim(m, d,  rigid_bodies)
-    world.step_sim()
-    end1_t = time.time()
-    duration1 = end1_t - begin1_t
-
-    world.fetch_sim(0)
-
-    s3d_mj.set_piece_pos_to_mujoco(m, d, sim_pieces, piece_names)
-
-    end0_t = time.time()
-    duration0 = end0_t - begin0_t
-    print("fps = ", 1. / duration0, '\t', 1. / duration1)
-
-    fi += 1
-
-print(' begin with ui')
-
 sync_rate = 1
 
 with mujoco.viewer.launch_passive(m, d) as viewer:
