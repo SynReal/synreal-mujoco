@@ -23,7 +23,9 @@ def _add_piece_to_sim(x,t,name,world,sim_pieces,piece_names):
     sim_pieces.append(cloth)
     piece_names.append(name)
 
-def _add_rigid_body_to_sim(i, x, t,transform, world, rigid_bodies):
+def _add_rigid_body_to_sim(i, x, t, xmat, xpos, world, rigid_bodies):
+
+    transform = _mj_data_helper. to_sim_transfrom(xmat,xpos)
 
     mesh = sim.Mesh(t, x)
 
@@ -42,8 +44,8 @@ def _add_rigid_body_to_sim(i, x, t,transform, world, rigid_bodies):
 
     rigid_bodies.append(rigid_body)
 
-def _set_rigid_body_to_sim(i, x, t, transform, rigid_bodies,last_rigid_body_transform):
-    rigid_bodies[i].move(last_rigid_body_transform[i],transform)
+def _set_rigid_body_to_sim(i, x, t, xmat,xpos, rigid_bodies,last_rigid_body_transform):
+    rigid_bodies[i].move(last_rigid_body_transform[i],_mj_data_helper.to_sim_transfrom(xmat,xpos))
 
 
 def _log_callback(file_name: str, func_name: str, line: int, level: sim.LogLevel, message: str):
@@ -75,12 +77,12 @@ def load_data(xml_path):
     d = mujoco.MjData(m)
     mujoco.mj_forward(m, d)  # so that d is populated by m
 
-    return m,d
+    return m, d
 
-def add_piece_to_sim(m,d,world):
+def add_piece_to_sim(m, d, world):
     sim_pieces = []
     piece_names = []
-    add_piece = lambda x,t,name :_add_piece_to_sim(x,t,name,world,sim_pieces,piece_names)
+    add_piece = lambda x, t, name :_add_piece_to_sim(x,t,name,world,sim_pieces,piece_names)
     _mj_data_helper.for_each_piece(m, d, add_piece)
     return sim_pieces,piece_names
 
@@ -88,7 +90,7 @@ def add_piece_to_sim(m,d,world):
 def add_rigid_body_to_sim(m, d, world):
     objects = []
 
-    _mj_data_helper.for_each_rigid_meshes(m, d, lambda i,x,t,transform:_add_rigid_body_to_sim(i,x,t,transform,world,objects))
+    _mj_data_helper.for_each_rigid_meshes(m, d, lambda i,x,t,xmat,xpos:_add_rigid_body_to_sim(i,x,t,xmat,xpos, world, objects))
 
     return  objects
 
@@ -99,5 +101,5 @@ def set_piece_pos_to_mujoco(m, d, sim_pieces,piece_names):
 
 def set_rigid_body_pos_to_sim(m, d,  rigid_bodies):
     last_rigid_body_transform = [rb.get_transform() for rb in rigid_bodies]
-    _mj_data_helper.for_each_rigid_meshes(m, d, lambda i, x, t, transform : _set_rigid_body_to_sim(i,x,t,transform,rigid_bodies, last_rigid_body_transform))
+    _mj_data_helper.for_each_rigid_meshes(m, d, lambda i, x, t, xmat,xpos : _set_rigid_body_to_sim(i, x, t, xmat,xpos, rigid_bodies, last_rigid_body_transform))
 

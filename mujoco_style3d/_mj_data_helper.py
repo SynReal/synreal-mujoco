@@ -81,6 +81,22 @@ def _get_mesh_tri(id, m: mujoco.MjModel):
 def _get_geo_num(m: mujoco.MjModel):
     return _mj_get_attr(m, "ngeom")
 
+def to_sim_transfrom(xmat,xpos):
+    transform = sim.Transform()
+    transform.translation.x = xpos[0]
+    transform.translation.y = xpos[1]
+    transform.translation.z = xpos[2]
+
+    transform.scale = sim.Vec3f(1, 1, 1)
+
+    mat = sim.Matrix3f(
+        sim.Vec3f(xmat[0], xmat[3], xmat[6]),
+        sim.Vec3f(xmat[1], xmat[4], xmat[7]),
+        sim.Vec3f(xmat[2], xmat[5], xmat[8])
+    )
+
+    transform.rotation = sim.Quat(mat)
+    return  transform
 
 def for_each_piece(m: mujoco.MjModel,d: mujoco.MjData,fn):
     vert_num = _get_flex_vert_num_buffer(m)
@@ -125,22 +141,7 @@ def for_each_rigid_meshes(m: mujoco.MjModel,d: mujoco.MjData, fn):
         geo_pos = xpos[i]
         geo_mat = xmat[i]
 
-        transform = sim.Transform()
-        transform.translation.x = geo_pos[0]
-        transform.translation.y = geo_pos[1]
-        transform.translation.z = geo_pos[2]
-
-        transform.scale = sim.Vec3f(1,1,1)
-
-        mat = sim.Matrix3f(
-            sim.Vec3f(geo_mat[0],geo_mat[3],geo_mat[6]),
-            sim.Vec3f(geo_mat[1],geo_mat[4],geo_mat[7]),
-            sim.Vec3f(geo_mat[2],geo_mat[5],geo_mat[8])
-        )
-
-        transform.rotation = sim.Quat(mat)
-
-        fn(sloti,x,t,transform)
+        fn(sloti, x, t, geo_mat, geo_pos)
 
         sloti += 1
 

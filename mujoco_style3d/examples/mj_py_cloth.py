@@ -12,6 +12,7 @@ def log_in(usr,pw):
 log_in('simsdk001','xSXiaCMd')
 
 m , d = s3d_mj.load_data('xml_projects/piper_secription_with_cloth/piper_description.xml')
+#m , d = s3d_mj.load_data('F:/mujoco_proj/intro_workshop/main.xml')
 
 world = s3d_mj.get_a_sim_world()
 
@@ -22,7 +23,8 @@ sync_rate = 1
 
 with mujoco.viewer.launch_passive(m, d) as viewer:
 
-    fi=0
+    fi = 0
+
     while viewer.is_running():
 
         begin0_t = time.time()

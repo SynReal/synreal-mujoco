@@ -1,0 +1,39 @@
+<mujoco model="piper">
+    <compiler angle="radian" />
+    <size njmax="500" nconmax="100" />
+
+    <visual>
+        <headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0"/>
+        <rgba haze="0.15 0.25 0.35 1"/>
+        <global azimuth="150" elevation="-20"/>
+    </visual>
+
+    <asset>
+        <mesh name="base_link"          file="base_link.STL" />
+        <mesh name="link1"              file="link1.STL" />
+        <mesh name="link2"              file="link2.STL" />
+        <mesh name="link3"              file="link3.STL" />
+        <mesh name="link4"              file="link4.STL" />
+        <mesh name="link5"              file="link5.STL" />
+        <mesh name="link6"              file="link6.STL" />
+        <mesh name="gripper_base"       file="gripper_base.STL" />
+        <mesh name="link7"              file="link7.STL" />
+        <mesh name="link8"              file="link8.STL" />
+    </asset>
+    <worldbody>
+        <geom type="mesh" rgba="0.792157 0.819608 0.933333 1" mesh="base_link" />
+        <body name="link1" pos="0 0 0.123">
+            <inertial pos="0.000121505 0.000104632 -0.00438597" quat="0.682111 0.730899 0.0143111 -0.0175062" mass="0.71" diaginertia="0.000489262 0.000439887 0.000404551" />
+            <joint name="joint1" pos="0 0 0" axis="0 0 1" limited="true" range="-2.618 2.168" damping="500"/>
+            <geom type="mesh" rgba="0.792157 0.819608 0.933333 1" mesh="link1" />
+        </body>
+
+
+    <flexcomp name="cloth" type="mesh" pos="-0.8 -2.0 0.2" quat="1 0 0 0" radius=".0005" dim="2" custom="true" file="50k_plane.obj">
+    </flexcomp>
+
+    </worldbody>
+    <actuator>
+        <position name="joint1" ctrllimited="true" ctrlrange="-2.618 2.618" joint="joint1" kp="10000" user="1" forcelimited="false"/>
+    </actuator>
+</mujoco>

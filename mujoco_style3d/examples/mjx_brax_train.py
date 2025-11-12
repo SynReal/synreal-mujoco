@@ -26,6 +26,8 @@ import functools
 
 from datetime import datetime
 
+print(jax.devices())
+
 #@title Humanoid Env
 HUMANOID_ROOT_PATH = epath.Path(epath.resource_path('mujoco')) / 'mjx/test_data/humanoid'
 
@@ -159,6 +161,7 @@ env_name = 'humanoid'
 envs.register_environment(env_name, Humanoid)
 
 env = envs.get_environment(env_name)
+
 
 # define the jit reset/step functions
 jit_reset = jax.jit(env.reset)
