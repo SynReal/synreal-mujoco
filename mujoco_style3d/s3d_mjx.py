@@ -44,6 +44,8 @@ class mjx_data_manager:
         _transform_mj_rigidbody_pos(self.mjx_data.get_model(), new_mj_data, delta_pos)
 
         mj_data = self.sim_world.mj_datas[batch_i]
+
+        # just to make render ok
         mj_data.geom_xmat = new_mj_data.geom_xmat
         mj_data.geom_xpos = new_mj_data.geom_xpos
 
@@ -154,6 +156,7 @@ class _mjx_data:
         self.mjx_data = jax.vmap(lambda rng: self.mjx_data.replace(qpos=jax.random.uniform(rng, (1,))))(rng)
         #self.mjx_data = jax.vmap(lambda rng: self.mjx_data.replace(qpos=jax.random.uniform(rng, (1,),minval=1,maxval=1 )))(rng)
 
+        ## can't transform mjx data here ?
         #for i in range(batch_size):
         #    delta_pos = _get_transform_pos(i)
         #    mj_data = self.get_data(i)
