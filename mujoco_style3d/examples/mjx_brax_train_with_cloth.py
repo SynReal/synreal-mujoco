@@ -30,8 +30,7 @@ from datetime import datetime
 print(jax.devices())
 
 #@title Humanoid Env
-#HUMANOID_ROOT_PATH = epath.Path(epath.resource_path('mujoco')) / 'mjx/test_data/humanoid'
-HUMANOID_ROOT_PATH = 'xml_projects/humanoid'
+HUMANOID_ROOT_PATH = 'xml_projects/humanoid_with_cloth'
 TRAINED_MODEL_PATH = os.path.join(HUMANOID_ROOT_PATH,'trained_model')
 
 

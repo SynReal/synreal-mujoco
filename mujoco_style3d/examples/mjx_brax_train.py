@@ -25,11 +25,13 @@ import matplotlib.animation as animation
 import functools
 
 from datetime import datetime
+import os
 
 print(jax.devices())
 
 #@title Humanoid Env
 HUMANOID_ROOT_PATH = epath.Path(epath.resource_path('mujoco')) / 'mjx/test_data/humanoid'
+TRAINED_MODEL_PATH = os.path.join(HUMANOID_ROOT_PATH,'trained_model')
 
 class Humanoid(PipelineEnv):
 
@@ -179,16 +181,15 @@ for i in range(10):
 
 frames = env.render(rollout, camera='side')
 
-fig, ax = plt.subplots()
-
 def update(fi):
     ax.imshow(frames[fi])
 
-ani = animation.FuncAnimation(fig, update, len(frames), interval=100 )
-video_file='./trianed_model/humanoid_walk/before_train.gif'
+fig, ax = plt.subplots()
+print_frame = functools.partial(update,ax=ax)
+ani = animation.FuncAnimation(fig, print_frame, len(frames), interval=100 )
+video_file = os.path.join(HUMANOID_ROOT_PATH , 'before_train.gif')
 ani.save(video_file, writer='imagemagick', fps=60)
 print(f'save video to {video_file} !')
-
 
 train=False
 
@@ -277,14 +278,9 @@ for i in range(n_steps):
 
 frames = env.render(rollout[::render_every], camera='side')
 
-#media.show_video(env.render(rollout[::render_every], camera='side'), fps=1.0 / env.dt / render_every)
-
 fig, ax = plt.subplots()
-
-def update(fi):
-    ax.imshow(frames[fi])
-
-ani = animation.FuncAnimation(fig, update, len(frames), interval = 100 )
-video_file='./trianed_model/humanoid_walk/roll_out.gif'
+print_frame = functools.partial(update,ax=ax)
+ani = animation.FuncAnimation(fig, print_frame , len(frames), interval = 100 )
+video_file = os.path.join(TRAINED_MODEL_PATH,'roll_out.gif')
 ani.save(video_file, writer='imagemagick', fps=60)
 print(f'save video to {video_file} !')
