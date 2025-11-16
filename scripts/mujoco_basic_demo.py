@@ -22,9 +22,20 @@ log_in('SHJD_test01_en','YpCVTFAK')
 xml_path = os.path.join(PROJECT_ROOT, 'assets', 'mujoco_model', 'dual_piper_with_cloth_simple.xml')
 m , d = s3d_mj.load_data(xml_path)
 
+# cloth_params
+from mujoco_style3d.s3d_mj import ClothParams
+cloth_params = ClothParams()
+cloth_params.stretch_stiff = sim.Vec3f(75000,200000, 20000)
+cloth_params.bend_stiff = sim.Vec3f(1e3, 2e3, 1.5e3)
+cloth_params.density = 220
+cloth_params.static_friction = 0.6
+cloth_params.dynamic_friction = 0.6
+
+
+
 # create sim world
 world = s3d_mj.get_a_sim_world()
-sim_pieces, piece_names = s3d_mj.add_piece_to_sim(m, d, world) # deformable 
+sim_pieces, piece_names = s3d_mj.add_piece_to_sim(m, d, world,cloth_params=cloth_params) # deformable 
 rigid_bodies = s3d_mj.add_rigid_body_to_sim(m, d, world) # rigid body
 
 sync_rate = 1

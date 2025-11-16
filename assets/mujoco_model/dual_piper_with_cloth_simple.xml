@@ -97,13 +97,13 @@
 
 
 <!--     cloth -->
-    <!-- <flexcomp name="cloth" type="mesh" material="cloth_material"
-    pos="-0.1 -0.0 0.8" quat="1 0 0 0" 
+    <flexcomp name="cloth" type="mesh" material="cloth_material"
+    pos="-0.1 -0.0 0.4" quat="1 0 0 0" 
     radius=".0005" dim="2" custom="true"   
     file="cloth/green_tshirt.obj">
 
     
-    </flexcomp> -->
+    </flexcomp>
 
 <!--      piper-->
     <body name="robot_placement_frame" pos="0 0 0.000" quat="1 0 0 0">

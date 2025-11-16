@@ -1,4 +1,5 @@
 import sys
+
 import mujoco
 import mujoco.viewer
 import numpy as np
@@ -12,6 +13,13 @@ except ImportError:
     print("Error: 'rospy' or 'sensor_msgs' not found.")
     exit(1)
 
+import style3dsim as sim
+import mujoco_style3d.s3d_mj as s3d_mj
+
+
+def log_in(usr,pw):
+    sim.login(usr, pw, True, None)
+
 
 class MujocoRosController:
     
@@ -19,11 +27,20 @@ class MujocoRosController:
         self.lock = threading.Lock()
         
         try:
-            self.model = mujoco.MjModel.from_xml_path(xml_path)
-            self.data = mujoco.MjData(self.model)
+            self.model , self.data =s3d_mj.load_data(xml_path)
+            # self.model = mujoco.MjModel.from_xml_path(xml_path)
+            # self.data = mujoco.MjData(self.model)
         except Exception as e:
             print(f"Error loading XML: {e}")
             exit(1)
+
+        # 初始化衣物
+        try:
+            self._init_cloth()
+
+        except Exception as e:
+            print(f"Error loading Cloth: {e}")
+            exit(1)   
         
         # 硬编码关节名称顺序
         self.left_arm_joints = [
@@ -55,6 +72,16 @@ class MujocoRosController:
                 self.latest_positions[joint_name] = self.data.qpos[qpos_addr]
             except:
                 self.latest_positions[joint_name] = 0.0
+    
+    def _init_cloth(self):
+        """初始化衣物到Style3D仿真中"""
+        log_in('SHJD_test01_en', 'YpCVTFAK')
+        self.world = s3d_mj.get_a_sim_world()
+        self.sim_pieces, self.piece_names = s3d_mj.add_piece_to_sim(self.model, self.data, self.world)  # deformable
+        self.rigid_bodies = s3d_mj.add_rigid_body_to_sim(self.model, self.data, self.world)  # rigid body
+        print("Cloth initialized in Style3D simulation.")
+
+
 
     def left_arm_callback(self, msg):
         """左臂话题回调"""
@@ -110,6 +137,8 @@ class MujocoRosController:
     def run_simulation(self):
         """运行仿真循环"""
         print("启动MuJoCo可视化器...")
+        sync_rate = 1
+        frame_index = 0
         
         with mujoco.viewer.launch_passive(self.model, self.data) as viewer :
             while viewer.is_running() and not rospy.is_shutdown():
@@ -125,19 +154,29 @@ class MujocoRosController:
                         except:
                             pass
                 
-                # 仿真步进
+                # MuJoCo仿真步进
                 mujoco.mj_step(self.model, self.data)
-                viewer.sync()
-                
+
+                # 更新刚体位置到Style3D仿真
+                s3d_mj.set_rigid_body_pos_to_sim(self.model, self.data, self.rigid_bodies)
+                self.world.step_sim()
+                self.world.fetch_sim(0)
+                s3d_mj.set_piece_pos_to_mujoco(self.model, self.data, self.sim_pieces, self.piece_names)
+
+                # 同步可视化器
+                if frame_index % sync_rate == 0:
+                    viewer.sync()
+                frame_index += 1
+
                 # 保持实时速率
                 time_until_next_step = self.model.opt.timestep - (time.time() - step_start)
                 if time_until_next_step > 0:
                     time.sleep(time_until_next_step)
 
 
+
 if __name__ == "__main__":
     xml_file_path = "/home/hwk/program/deformale_mjx/assets/mujoco_model/dual_piper_with_cloth_simple.xml"
-    
     controller = MujocoRosController(xml_file_path)
     controller.start_ros_listener()
     controller.run_simulation()
