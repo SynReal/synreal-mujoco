@@ -1,0 +1,268 @@
+<mujoco model="dual_arm_piper">
+  <!-- <compiler meshdir="assets" texturedir="assets" angle="radian" /> -->
+    <compiler  angle="radian" />
+
+    <option timestep="0.005"/>
+    <size njmax="500" nconmax="100" />
+
+  <visual>
+    <headlight diffuse="0.4 0.4 0.4" ambient="0.1 0.1 0.1" specular="0 0 0"/>
+    <rgba haze="0.15 0.25 0.35 1"/>
+    <global azimuth="150" elevation="-20" offwidth="1920" offheight="1080"/>
+<!--      <global offwidth="1920" offheight="1080"/>-->
+  </visual>
+
+    <default>
+    <default class="piper">
+      <joint frictionloss="0.3" armature="0.005"/>
+      <position inheritrange="1" forcerange="-100 100"/>
+
+      <default class="visual">
+        <geom group="2" type="mesh" contype="0" conaffinity="0" density="0"/>
+      </default>
+
+      <default class="collision">
+        <geom group="3" type="mesh" contype="1" conaffinity="1"/>
+      </default> 
+
+      <default class="finger">
+        <joint frictionloss="0" type="slide" damping="100"/>
+        <position forcerange="-100 100"/>
+      </default>
+
+     </default>
+    </default>
+
+
+
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
+  <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3" markrgb="0.8 0.8 0.8" width="300" height="300"/>
+  
+    <texture type="2d" name="fabric_texture" file="ground_plane/1K-fabric_51_baseColor.png"/>
+      <material name="groundplane" texture="fabric_texture" texuniform="true" texrepeat="5 5" reflectance="0.0" specular="0.0" shininess="0" />
+   
+<!--      piper-->
+    <material name="primary_white" rgba="0.95 0.95 0.95 1" specular="0.8" shininess="0.3"/>
+    <material name="secondary_silver" rgba="0.85 0.85 0.88 1" specular="0.7" shininess="0.25"/>
+    <material name="accent_dark" rgba="0.2 0.2 0.25 1" specular="0.3" shininess="0.1"/>
+    <material name="joint_gray" rgba="0.7 0.7 0.73 1" specular="0.5" shininess="0.2"/>
+    <material name="gripper_white" rgba="0.98 0.98 0.98 1" specular="0.9" shininess="0.4"/>
+
+    <material name="gray_mat" rgba="0.59 0.59 0.59 1"/>
+    <material name="light_gray_mat" rgba="0.98 0.98 0.98 1"/>
+    <material name="light_medium_gray_mat" rgba="0.85 0.85 0.85 1"/>
+    <material name="dark_gray_mat" rgba="0.086 0.086 0.086 1"/>
+    <material name="darker_gray_mat" rgba="0.14 0.14 0.14 1"/>
+    <material name="white_mat" rgba="1 1 1 1"/>
+    <material name="red_mat" rgba="0.82 0.15 0.15 1"/>
+    <material name="black_mat" rgba="0 0 0 1"/>
+    <material name="light_blue" rgba="0.79 0.82 0.93 1"/>
+
+    <material name="cloth_material" rgba="0.0845 0.4399 0.3615 1" specular="0.1" shininess="0.1"/>
+
+    <!-- Visual meshes -->
+    <mesh name="base_link" file="piper_meshes/base_link.STL" />
+    <mesh name="link1" file="piper_meshes/link1.STL" />
+    <mesh name="link2" file="piper_meshes/link2.STL" />
+    <mesh name="link3" file="piper_meshes/link3.STL" />
+    <mesh name="link4" file="piper_meshes/link4.STL" />
+    <mesh name="link5" file="piper_meshes/link5.STL" />
+    <mesh name="link6" file="piper_meshes/link6.STL" />
+    <mesh name="gripper_base" file="piper_meshes/gripper_base.STL" />
+    <mesh name="link7" file="piper_meshes/link7.STL" />
+    <mesh name="link8" file="piper_meshes/link8.STL" />
+    
+    <!-- Collision meshes -->
+    <mesh name="base_link_collision" file="piper_meshes/base_link_convex.STL" />
+    <mesh name="link1_collision" file="piper_meshes/link1_convex.STL" />
+    <mesh name="link2_collision" file="piper_meshes/link2_convex.STL" />
+    <mesh name="link3_collision" file="piper_meshes/link3_convex.STL" />
+    <mesh name="link4_collision" file="piper_meshes/link4_convex.STL" />
+    <mesh name="link5_collision" file="piper_meshes/link5_convex.STL" />
+    <mesh name="link6_collision" file="piper_meshes/link6_convex.STL" />
+    <mesh name="gripper_base_collision" file="piper_meshes/gripper_base_convex.STL" />
+    <mesh name="link7_collision" file="piper_meshes/link7_convex.STL" />
+    <mesh name="link8_collision" file="piper_meshes/link8_convex.STL" />
+
+  </asset>
+
+
+  <worldbody>
+    <light pos="0 0 1.5" dir="0 0 -1" directional="true"/>
+    <geom name="floor" size="0.0 0 0.000001" type="plane" pos="0 0 0.0" material="groundplane"/>
+
+      <camera name="video_third_view" pos="1.857 0.103 1.583" xyaxes="-0.011 1.000 0.000 -0.635 -0.007 0.772"/>
+      <camera name="video_grasp_start_view" pos="-0.265 -0.012 0.485" xyaxes="-0.009 -1.000 -0.000 0.716 -0.006 0.698"/>
+
+
+<!--     cloth -->
+    <!-- <flexcomp name="cloth" type="mesh" material="cloth_material"
+    pos="-0.1 -0.0 0.8" quat="1 0 0 0" 
+    radius=".0005" dim="2" custom="true"   
+    file="cloth/green_tshirt.obj">
+
+    
+    </flexcomp> -->
+
+<!--      piper-->
+    <body name="robot_placement_frame" pos="0 0 0.000" quat="1 0 0 0">
+      <!--        arm1-->
+      <body name="base_link_left" pos="0 0.25 0" quat="1 0 0 0" childclass="piper" gravcomp="1">
+          <geom type="mesh"  mesh="base_link" material="primary_white" class="visual"/>
+          <geom mesh="base_link_collision" class="collision" />
+        <body name="link1" pos="0 0 0.123">
+            <inertial pos="0.000121505 0.000104632 -0.00438597" quat="0.682111 0.730899 0.0143111 -0.0175062" mass="0.71" diaginertia="0.000489262 0.000439887 0.000404551"/>
+            <joint name="joint1" pos="0 0 0" axis="0 0 1" range="-2.618 2.168" actuatorfrcrange="-100 100"/>
+            <geom  mesh="link1" material="primary_white" class="visual"/>
+            <geom  mesh="link1_collision" class="collision"/>
+          <body name="link2" quat="0.0480084 -0.0480134 -0.705476 -0.705474">
+              <inertial pos="0.198666 -0.0109269 0.00142122" quat="0.510131 0.475585 0.525075 0.48773" mass="1.17" diaginertia="0.0679032 0.067745 0.00111966"/>
+              <joint name="joint2" pos="0 0 0" axis="0 0 1" range="0 3.14" actuatorfrcrange="-100 100"/>
+              <geom  mesh="link2" material="primary_white" class="visual"/>
+              <geom  mesh="link2_collision" class="collision" />
+            <body name="link3" pos="0.28503 0 0" quat="0.623996 0 0 -0.781427">
+                <inertial pos="-0.0202738 -0.133915 -0.000458683" quat="0.706282 0.705111 0.0532202 0.0339395" mass="0.5" diaginertia="0.0138227 0.0138032 0.000244685"/>
+                <joint name="joint3" pos="0 0 0" axis="0 0 1" range="-2.967 0" actuatorfrcrange="-100 100"/>
+                <geom  mesh="link3" material="primary_white" class="visual"/>
+                <geom  mesh="link3_collision" class="collision"/>
+              <body name="link4" pos="-0.021984 -0.25075 0" quat="0.707105 0.707108 0 0">
+                  <inertial pos="-9.66636e-05 0.000876064 -0.00496881" quat="0.714689 -0.0948484 0.0635223 0.690064" mass="0.38" diaginertia="0.000191586 0.000185052 0.000152863"/>
+                  <joint name="joint4" pos="0 0 0" axis="0 0 1" range="-1.745 1.745" actuatorfrcrange="-100 100"/>
+                  <geom  mesh="link4" material="primary_white" class="visual"/>
+                  <geom  mesh="link4_collision" class="collision"/>
+                <body name="link5" quat="0.707105 -0.707108 0 0">
+                    <inertial pos="-4.10554e-05 -0.0566487 -0.00372058" quat="0.709589 0.704614 0.00134613 -0.00132656" mass="0.383" diaginertia="0.00166169 0.00164328 0.000185028"/>
+                    <joint name="joint5" pos="0 0 0" axis="0 0 1" range="-1.22 1.22" actuatorfrcrange="-100 100"/>
+                    <geom  mesh="link5" material="primary_white" class="visual"/>
+                    <geom  mesh="link5_collision" class="collision"/>
+                  <body name="link6" pos="8.8259e-05 -0.091 0" quat="0.707105 0.707108 0 0">
+                      <inertial pos="-8.82591e-05 9.05984e-06 -0.002" quat="0.5 0.5 -0.5 0.5" mass="0.0069909" diaginertia="1.06739e-06 5.73016e-07 5.73016e-07"/>
+                      <joint name="joint6" pos="0 0 0" axis="0 0 1" range="-2.0944 2.0944" actuatorfrcrange="-100 100"/>
+                      <!--if you want to check the end actuator pose-->
+                      <site name="wrist_flange_left" pos="0 0 0" size="0.005" type="sphere" rgba="0 1 0 0.5"/>
+                      <geom  mesh="link6" material="primary_white" class="visual"/>
+                      <geom  mesh="link6_collision" class="collision"/>
+                      <geom  mesh="gripper_base" material="primary_white" class="visual"/>
+                      <geom  mesh="gripper_base_collision" class="collision"/>
+                    <body name="link7" pos="0 0 0.1358" quat="0.707105 0.707108 0 0">
+                        <inertial pos="0.000651232 -0.049193 0.00972259" quat="0.477798 0.572974 -0.518028 0.418398" mass="0.025" diaginertia="7.74531e-05 7.36783e-05 5.0886e-06" />
+                        <joint name="joint7" pos="0 0 0" axis="0 0 1" type="slide" limited="true" range="0 0.035" damping="100"/>
+                        <geom  mesh="link7" material="primary_white" class="visual"/>
+                        <geom  mesh="link7_collision" class="collision"/>
+                        <!--if you want to check the gripper pose-->
+                        <site name="gripper_tip_1_left" pos="0 0 0.0" size="0.005"/>
+                    </body>
+                    <body name="link8" pos="0 0 0.1358" quat="-2.59734e-06 -2.59735e-06 -0.707108 -0.707105">
+                        <inertial pos="0.000651232 -0.049193 0.00972259" quat="0.477798 0.572974 -0.518028 0.418398" mass="0.025" diaginertia="7.74531e-05 7.36783e-05 5.0886e-06" />
+                        <joint name="joint8" pos="0 0 0" axis="0 0 -1" type="slide" limited="true" range="-0.035 0" damping="100"/>
+                        <geom  mesh="link8" material="primary_white" class="visual" />
+                        <geom  mesh="link8_collision" class="collision"/>
+                        <!--if you want to check the gripper pose-->
+                        <site name="gripper_tip_2_left" pos="0 0 0.0" size="0.005"/>
+                    </body>
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+      </body>
+
+         <!--    arm2    -->
+      <body name="base_link_right" pos="0 -0.25 0" quat="1 0 0 0" childclass="piper" gravcomp="1">
+          <geom type="mesh"  mesh="base_link" material="primary_white" class="visual"/>
+          <geom mesh="base_link_collision" class="collision" />
+        <body name="link1_arm2" pos="0 0 0.123">
+            <inertial pos="0.000121505 0.000104632 -0.00438597" quat="0.682111 0.730899 0.0143111 -0.0175062" mass="0.71" diaginertia="0.000489262 0.000439887 0.000404551"/>
+            <joint name="joint1_arm2" pos="0 0 0" axis="0 0 1" range="-2.618 2.168"/>
+            <geom type="mesh" mesh="link1"  material="darker_gray_mat"/>
+            <geom  mesh="link1" material="primary_white" class="visual"/>
+            <geom  mesh="link1_collision" class="collision"/>
+          <body name="link2_arm2" quat="0.0480084 -0.0480134 -0.705476 -0.705474">
+              <inertial pos="0.198666 -0.0109269 0.00142122" quat="0.510131 0.475585 0.525075 0.48773" mass="1.17" diaginertia="0.0679032 0.067745 0.00111966"/>
+              <joint name="joint2_arm2" pos="0 0 0" axis="0 0 1" range="0 3.14"/>
+              <geom  mesh="link2" material="primary_white" class="visual"/>
+              <geom  mesh="link2_collision" class="collision"/>
+            <body name="link3_arm2" pos="0.28503 0 0" quat="0.623996 0 0 -0.781427">
+                <inertial pos="-0.0202738 -0.133915 -0.000458683" quat="0.706282 0.705111 0.0532202 0.0339395" mass="0.5" diaginertia="0.0138227 0.0138032 0.000244685"/>
+                <joint name="joint3_arm2" pos="0 0 0" axis="0 0 1" range="-2.967 0"/>
+                <geom  mesh="link3" material="primary_white" class="visual"/>
+                <geom  mesh="link3_collision" class="collision"/>
+              <body name="link4_arm2" pos="-0.021984 -0.25075 0" quat="0.707105 0.707108 0 0">
+                  <inertial pos="-9.66636e-05 0.000876064 -0.00496881" quat="0.714689 -0.0948484 0.0635223 0.690064" mass="0.38" diaginertia="0.000191586 0.000185052 0.000152863"/>
+                  <joint name="joint4_arm2" pos="0 0 0" axis="0 0 1" range="-1.745 1.745"/>
+                  <geom  mesh="link4" material="primary_white" class="visual"/>
+                  <geom  mesh="link4_collision" class="collision"/>
+                <body name="link5_arm2" quat="0.707105 -0.707108 0 0">
+                    <inertial pos="-4.10554e-05 -0.0566487 -0.00372058" quat="0.709589 0.704614 0.00134613 -0.00132656" mass="0.383" diaginertia="0.00166169 0.00164328 0.000185028"/>
+                    <joint name="joint5_arm2" pos="0 0 0" axis="0 0 1" range="-1.22 1.22"/>
+                    <geom  mesh="link5" material="primary_white" class="visual"/>
+                    <geom  mesh="link5_collision" class="collision"/>
+                  <body name="link6_arm2" pos="8.8259e-05 -0.091 0" quat="0.707105 0.707108 0 0">
+                      <inertial pos="-8.82591e-05 9.05984e-06 -0.002" quat="0.5 0.5 -0.5 0.5" mass="0.0069909" diaginertia="1.06739e-06 5.73016e-07 5.73016e-07"/>
+                      <joint name="joint6_arm2" pos="0 0 0" axis="0 0 1" range="-2.0944 2.0944"/>
+                      <geom  mesh="link6" material="primary_white" class="visual"/>
+                      <geom  mesh="link6_collision" class="collision"/>
+                      <geom  mesh="gripper_base" material="primary_white" class="visual" />
+                      <geom  mesh="gripper_base_collision" class="collision"/>
+                       <!--if you want to check the end actuator pose-->
+                      <site name="wrist_flange_right" pos="0 0 0" size="0.015" type="sphere" rgba="0 1 0 0.5"/>
+                    <body name="link7_arm2" pos="0 0 0.1358" quat="0.707105 0.707108 0 0">
+                        <inertial pos="0.000651232 -0.049193 0.00972259" quat="0.477798 0.572974 -0.518028 0.418398" mass="0.025" diaginertia="7.74531e-05 7.36783e-05 5.0886e-06"/>
+                        <joint name="joint7_arm2" pos="0 0 0" axis="0 0 1" type="slide" range="0 0.035" damping="100"/>
+                        <geom  mesh="link7" material="primary_white" class="visual"/>
+                        <geom  mesh="link7_collision" class="collision"/>
+                        <!--if you want to check the gripper pose-->
+                        <site name="gripper_tip_1_right" pos="0 0 0.0" size="0.005"/>
+                    </body>
+                    <body name="link8_arm2" pos="0 0 0.1358" quat="0 0 -0.707107 -0.707107">
+                        <inertial pos="0.000651232 -0.049193 0.00972259" quat="0.477798 0.572974 -0.518028 0.418398" mass="0.025" diaginertia="7.74531e-05 7.36783e-05 5.0886e-06"/>
+                        <joint name="joint8_arm2" pos="0 0 0" axis="0 0 -1" type="slide" range="-0.035 0" damping="100"/>
+                        <geom  mesh="link8" material="primary_white" class="visual"/>
+                        <geom  mesh="link8_collision" class="collision"/>
+                        <!--if you want to check the gripper pose-->
+                        <site name="gripper_tip_2_right" pos="0 0 0.0" size="0.005"/>
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <contact>
+    <exclude body1="base_link_left" body2="link1"/>
+    <exclude body1="base_link_right" body2="link1_arm2"/>
+  </contact>
+<!--  <equality>-->
+<!--    <joint joint1="joint8" joint2="joint7" polycoef="0 -1 0 0 0"/>-->
+<!--    <joint joint1="joint8_arm2" joint2="joint7_arm2" polycoef="0 -1 0 0 0"/>-->
+<!--  </equality>-->
+
+  <actuator>
+    <position name="joint1" joint="joint1" class="piper" kp="80" kv="5"/>
+    <position name="joint2" joint="joint2" class="piper" kp="80" kv="5"/>
+    <position name="joint3" joint="joint3" class="piper" kp="80" kv="5"/>
+    <position name="joint4" joint="joint4" class="piper" kp="40" kv="5"/>
+    <position name="joint5" joint="joint5" class="piper" kp="10" kv="1.5"/>
+    <position name="joint6" joint="joint6" class="piper" kp="10" kv="1.5"/>
+    <position name="joint7" joint="joint7" class="finger" kp="400" kv="5" user="1" forcelimited="false" forcerange="-100 100"/>
+    <position name="joint8" joint="joint8" class="finger" kp="400" kv="5" user="1" forcelimited="false" forcerange="-100 100"/>
+
+    <position name="joint1_arm2" joint="joint1_arm2" class="piper" kp="80" kv="5"/>
+    <position name="joint2_arm2" joint="joint2_arm2" class="piper" kp="80" kv="5"/>
+    <position name="joint3_arm2" joint="joint3_arm2" class="piper" kp="80" kv="5"/>
+    <position name="joint4_arm2" joint="joint4_arm2" class="piper" kp="40" kv="5"/>
+    <position name="joint5_arm2" joint="joint5_arm2" class="piper" kp="10" kv="1.5"/>
+    <position name="joint6_arm2" joint="joint6_arm2" class="piper" kp="10" kv="1.5"/>
+    <position name="joint7_arm2" class="finger" joint="joint7_arm2" kp="400" kv="5" user="1" forcelimited="false" forcerange="-100 100" />
+    <position name="joint8_arm2" class="finger"  joint="joint8_arm2"  kp="400" kv="5" user="1" forcelimited="false" forcerange="-100 100" />
+  </actuator>
+
+
+</mujoco>
+

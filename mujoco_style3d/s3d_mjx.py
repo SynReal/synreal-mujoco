@@ -10,7 +10,7 @@ import xml.etree.ElementTree as ET
 import os
 import jax
 import style3dsim as sim
-
+import jax.numpy as jnp
 
 class mjx_data_manager:
 
@@ -151,7 +151,9 @@ class _mjx_data:
 
         rng = jax.random.PRNGKey(0)
         rng = jax.random.split(rng, batch_size)
-        self.mjx_data = jax.vmap(lambda rng: self.mjx_data.replace(qpos=jax.random.uniform(rng, (1,))))(rng)
+        
+        # self.mjx_data = jax.vmap(lambda rng: self.mjx_data.replace(qpos=jax.random.uniform(rng, (1,))))(rng)
+        self.mjx_data = jax.vmap(lambda _: self.mjx_data)(jnp.arange(batch_size))
         #self.mjx_data = jax.vmap(lambda rng: self.mjx_data.replace(qpos=jax.random.uniform(rng, (1,),minval=1,maxval=1 )))(rng)
 
         #for i in range(batch_size):

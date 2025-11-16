@@ -5,6 +5,7 @@ import mujoco.viewer
 import jax
 from jax import numpy as jp
 import numpy as np
+import os
 
 from etils import epath
 
@@ -27,9 +28,16 @@ import functools
 from datetime import datetime
 
 print(jax.devices())
+try:
+    PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+except NameError:
+    PROJECT_ROOT = os.getcwd()
+
+print("PROJECT_ROOT:", PROJECT_ROOT)
 
 #@title Humanoid Env
 HUMANOID_ROOT_PATH = epath.Path(epath.resource_path('mujoco')) / 'mjx/test_data/humanoid'
+
 
 class Humanoid(PipelineEnv):
 
@@ -185,14 +193,14 @@ def update(fi):
     ax.imshow(frames[fi])
 
 ani = animation.FuncAnimation(fig, update, len(frames), interval=100 )
-video_file='./trianed_model/humanoid_walk/before_train.gif'
+video_file = os.path.join(PROJECT_ROOT, "examples", "trained_model", "humanoid_walk", "before_train.gif")
 ani.save(video_file, writer='imagemagick', fps=60)
 print(f'save video to {video_file} !')
 
 
-train=False
+train=True
 
-model_path = './trianed_model/humanoid_walk/humanoid_walk'
+model_path = os.path.join(PROJECT_ROOT,"examples",'trained_model/humanoid_walk/humanoid_walk')
 
 if train:
     train_fn = functools.partial(
@@ -285,6 +293,7 @@ def update(fi):
     ax.imshow(frames[fi])
 
 ani = animation.FuncAnimation(fig, update, len(frames), interval = 100 )
-video_file='./trianed_model/humanoid_walk/roll_out.gif'
+
+video_file=os.path.join(PROJECT_ROOT,"examples",'trained_model/humanoid_walk/roll_out.gif')
 ani.save(video_file, writer='imagemagick', fps=60)
 print(f'save video to {video_file} !')

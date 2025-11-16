@@ -6,13 +6,23 @@ import mujoco.viewer
 
 import mujoco_style3d.s3d_mj as s3d_mj
 
+from pathlib import Path
+import os
+
 def log_in(usr,pw):
     sim.login(usr, pw, True, None)
 
 log_in('simsdk001','xSXiaCMd')
 
-m , d = s3d_mj.load_data('xml_projects/piper_secription_with_cloth/piper_description.xml')
-#m , d = s3d_mj.load_data('F:/mujoco_proj/intro_workshop/main.xml')
+
+try:
+    PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+except NameError:
+    PROJECT_ROOT = os.getcwd()
+
+print("PROJECT_ROOT:", PROJECT_ROOT)
+xml_path = os.path.join(PROJECT_ROOT, 'examples', 'xml_projects', 'piper_secription_with_cloth', 'piper_description.xml')
+m , d = s3d_mj.load_data(xml_path)
 
 world = s3d_mj.get_a_sim_world()
 
@@ -29,7 +39,6 @@ with mujoco.viewer.launch_passive(m, d) as viewer:
 
         begin0_t = time.time()
         mujoco.mj_step(m, d)
-
         begin1_t = time.time()
         s3d_mj.set_rigid_body_pos_to_sim(m, d,  rigid_bodies)
         world.step_sim()

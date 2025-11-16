@@ -4,20 +4,40 @@ import numpy as np
 
 import mujoco_style3d._mj_data_helper as _mj_data_helper
 
+from dataclasses import dataclass
 
-def _add_piece_to_sim(x,t,name,world,sim_pieces,piece_names):
+@dataclass
+class ClothParams:
+    """ 布料物理属性的数据类"""
+    # stretch_stiff: sim.Vec3f = sim.Vec3f(7.5e4,2.0e5, 2.0e4)
+    stretch_stiff: sim.Vec3f = sim.Vec3f(75000,200000, 20000)
+    bend_stiff: sim.Vec3f = sim.Vec3f(1e3, 2e3, 1.5e3)
+    density: float = 220
+    static_friction: float = 0.6
+    dynamic_friction: float = 0.6
 
+
+def add_piece_to_sim(m,d,world, cloth_params: ClothParams = None):
+    sim_pieces = []
+    piece_names = []
+    if cloth_params is None:
+        cloth_params = ClothParams()
+    add_piece = lambda x,t,name :_add_piece_to_sim(x,t,name,world,sim_pieces,piece_names, cloth_params)
+    _mj_data_helper.for_each_piece(m, d, add_piece)
+    return sim_pieces,piece_names
+
+
+def _add_piece_to_sim(x, t, name, world, sim_pieces, piece_names, params: ClothParams):   
     cloth = sim.Cloth(t, x, np.array([], dtype=float), False)
 
     cloth_attrib = sim.ClothAttrib()
-    cloth_attrib.stretch_stiff = sim.Vec3f(120, 100, 80)
-    cloth_attrib.bend_stiff = sim.Vec3f(1e-6, 1e-6, 1e-6)
-    cloth_attrib.density = 0.2
-    cloth_attrib.static_friction = 0.03
-    cloth_attrib.dynamic_friction = 0.03
+    cloth_attrib.stretch_stiff = params.stretch_stiff
+    cloth_attrib.bend_stiff = params.bend_stiff
+    cloth_attrib.density = params.density
+    cloth_attrib.static_friction = params.static_friction
+    cloth_attrib.dynamic_friction = params.dynamic_friction
 
     cloth.set_attrib(cloth_attrib)
-
     cloth.attach(world)
 
     sim_pieces.append(cloth)
@@ -79,12 +99,12 @@ def load_data(xml_path):
 
     return m, d
 
-def add_piece_to_sim(m, d, world):
-    sim_pieces = []
-    piece_names = []
-    add_piece = lambda x, t, name :_add_piece_to_sim(x,t,name,world,sim_pieces,piece_names)
-    _mj_data_helper.for_each_piece(m, d, add_piece)
-    return sim_pieces,piece_names
+# def add_piece_to_sim(m, d, world):
+#     sim_pieces = []
+#     piece_names = []
+#     add_piece = lambda x, t, name :_add_piece_to_sim(x,t,name,world,sim_pieces,piece_names)
+#     _mj_data_helper.for_each_piece(m, d, add_piece)
+#     return sim_pieces,piece_names
 
 
 def add_rigid_body_to_sim(m, d, world):
