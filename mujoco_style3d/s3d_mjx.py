@@ -3,14 +3,13 @@ from copy import deepcopy
 import numpy as np
 
 import mujoco_style3d.s3d_mj as s3d_mj
-from mujoco_style3d import piece_property
+from mujoco_style3d import cloth_property
 import mujoco_style3d._mj_data_helper as s3d_mj_helper
 import mujoco
 from mujoco import mjx
 import xml.etree.ElementTree as ET
 import os
 import jax
-import style3dsim as sim
 
 
 class mjx_data_manager:
@@ -55,7 +54,7 @@ class mjx_data_manager:
         mj_data = self.sim_world.mj_datas[batch_i]
         sim_pieces = self.sim_world.sim_pieces[batch_i]
         piece_names = self.sim_world.piece_names[batch_i]
-        s3d_mj.set_piece_pos_to_mujoco(self.sim_world.mj_model, mj_data, sim_pieces, piece_names)
+        s3d_mj.set_cloth_pos_to_mujoco(self.sim_world.mj_model, mj_data, sim_pieces, piece_names)
 
 
     def _get_mjx_data(self):
@@ -106,7 +105,7 @@ class mjx_data_manager:
 
             _transform_mj_rigidbody_pos(mj_model, mjx_data, delta_pos)
 
-            sim_pieces, piece_names = s3d_mj.add_piece_to_sim(mj_model, mj_data, world,lambda name: piece_property.get_piece_property_default())
+            sim_pieces, piece_names = s3d_mj.add_cloth_to_sim(mj_model, mj_data, world, lambda name: cloth_property.get_piece_property_default())
             rigid_bodies = s3d_mj.add_rigid_body_to_sim(mj_model, mjx_data, world)
 
             ret.mj_datas.append(mj_data)
@@ -219,5 +218,5 @@ def _do_transform_piece_pos(x,delta_pos):
     x[:] += delta_pos
 
 def _transform_piece_pos( m,d,delta_pos):
-    s3d_mj_helper.for_each_piece(m,d,lambda x,t,name:_do_transform_piece_pos(x,delta_pos))
+    s3d_mj_helper.for_each_cloth(m, d, lambda x, t, name:_do_transform_piece_pos(x, delta_pos))
 

@@ -5,17 +5,17 @@ import numpy as np
 import mujoco_style3d._mj_data_helper as _mj_data_helper
 
 
-def _add_piece_to_sim(x,t,name,world,sim_pieces,piece_names,fabric_getter):
+def _add_cloth_to_sim(x, t, name, world, sim_clothes, cloth_names, fabric_getter):
 
     cloth = sim.Cloth(t, x, np.array([], dtype=float), False)
 
-    #cloth_attrib = fabric_getter(name)
-    #cloth.set_attrib(cloth_attrib)
+    cloth_attrib = fabric_getter(name)
+    cloth.set_attrib(cloth_attrib)
 
     cloth.attach(world)
 
-    sim_pieces.append(cloth)
-    piece_names.append(name)
+    sim_clothes.append(cloth)
+    cloth_names.append(name)
 
 def _add_rigid_body_to_sim(i, x, t, xmat, xpos, world, rigid_bodies):
 
@@ -80,12 +80,12 @@ def load_data(xml_path):
 
     return m, d
 
-def add_piece_to_sim(m, d, world, fabric_getter):
-    sim_pieces = []
-    piece_names = []
-    add_piece = lambda x, t, name :_add_piece_to_sim(x,t,name,world,sim_pieces,piece_names,fabric_getter)
-    _mj_data_helper.for_each_piece(m, d, add_piece)
-    return sim_pieces,piece_names
+def add_cloth_to_sim(m, d, world, cloth_property_getter):
+    sim_clothes = []
+    cloth_names = []
+    add_cloth = lambda x, t, name :_add_cloth_to_sim(x, t, name, world, sim_clothes, cloth_names, cloth_property_getter)
+    _mj_data_helper.for_each_cloth(m, d, add_cloth)
+    return sim_clothes,cloth_names
 
 
 def add_rigid_body_to_sim(m, d, world):
@@ -95,10 +95,10 @@ def add_rigid_body_to_sim(m, d, world):
 
     return  objects
 
-def set_piece_pos_to_mujoco(m, d, sim_pieces,piece_names):
-    for cloth, cloth_name in zip(sim_pieces, piece_names):
+def set_cloth_pos_to_mujoco(m, d, sim_clothes, cloth_names):
+    for cloth, cloth_name in zip(sim_clothes, cloth_names):
         x = cloth.get_positions()
-        _mj_data_helper.set_piece_positions(m, d, cloth_name, x)
+        _mj_data_helper.set_cloth_positions(m, d, cloth_name, x)
 
 def set_rigid_body_pos_to_sim(m, d,  rigid_bodies):
     last_rigid_body_transform = [rb.get_transform() for rb in rigid_bodies]

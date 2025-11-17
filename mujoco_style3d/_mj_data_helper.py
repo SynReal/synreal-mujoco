@@ -98,7 +98,7 @@ def to_sim_transfrom(xmat,xpos):
     transform.rotation = sim.Quat(mat)
     return  transform
 
-def for_each_piece(m: mujoco.MjModel,d: mujoco.MjData,fn):
+def for_each_cloth(m: mujoco.MjModel, d: mujoco.MjData, fn):
     vert_num = _get_flex_vert_num_buffer(m)
 
     num_flex = getattr(m, "nflex", 0)
@@ -145,6 +145,6 @@ def for_each_rigid_meshes(m: mujoco.MjModel,d: mujoco.MjData, fn):
 
         sloti += 1
 
-def set_piece_positions(m: mujoco.MjModel, d: mujoco.MjData, mesh_name, x):
+def set_cloth_positions(m: mujoco.MjModel, d: mujoco.MjData, mesh_name, x):
     _set_flex_vertices(m,d,mesh_name,x)
 
