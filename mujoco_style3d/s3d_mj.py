@@ -5,18 +5,12 @@ import numpy as np
 import mujoco_style3d._mj_data_helper as _mj_data_helper
 
 
-def _add_piece_to_sim(x,t,name,world,sim_pieces,piece_names):
+def _add_piece_to_sim(x,t,name,world,sim_pieces,piece_names,fabric_getter):
 
     cloth = sim.Cloth(t, x, np.array([], dtype=float), False)
 
-    cloth_attrib = sim.ClothAttrib()
-    cloth_attrib.stretch_stiff = sim.Vec3f(120, 100, 80)
-    cloth_attrib.bend_stiff = sim.Vec3f(1e-6, 1e-6, 1e-6)
-    cloth_attrib.density = 0.2
-    cloth_attrib.static_friction = 0.03
-    cloth_attrib.dynamic_friction = 0.03
-
-    cloth.set_attrib(cloth_attrib)
+    #cloth_attrib = fabric_getter(name)
+    #cloth.set_attrib(cloth_attrib)
 
     cloth.attach(world)
 
@@ -58,17 +52,24 @@ def _log_callback(file_name: str, func_name: str, line: int, level: sim.LogLevel
     elif level == sim.LogLevel.DEBUG:
         print("[debug]: ", message)
 
-def get_a_sim_world():
+def get_a_sim_world(m):
+
+    if not sim.is_login():
+        sim.login('simsdk001', 'xSXiaCMd', True, None)
+
     sim.set_log_callback(_log_callback)
 
     world = sim.World()
     world_attrib = sim.WorldAttrib()
     world_attrib.enable_gpu = True
-    world_attrib.gravity = sim.Vec3f(0, 0, -9.81)
+    world_attrib.gravity = sim.Vec3f(m.opt.gravity[0], m.opt.gravity[1], m.opt.gravity[2])
     world_attrib.ground_direction = sim.Vec3f(0., 0., 1.)
-    world_attrib.time_step = 0.001
+    world_attrib.time_step = m.opt.timestep
     world_attrib.enable_rigid_self_collision = False
     world.set_attrib(world_attrib)
+
+    print(f'time step {world_attrib.time_step}')
+    print(f'gravity {m.opt.gravity[0]},{m.opt.gravity[1]},{m.opt.gravity[2]} ')
     return world
 
 
@@ -79,10 +80,10 @@ def load_data(xml_path):
 
     return m, d
 
-def add_piece_to_sim(m, d, world):
+def add_piece_to_sim(m, d, world, fabric_getter):
     sim_pieces = []
     piece_names = []
-    add_piece = lambda x, t, name :_add_piece_to_sim(x,t,name,world,sim_pieces,piece_names)
+    add_piece = lambda x, t, name :_add_piece_to_sim(x,t,name,world,sim_pieces,piece_names,fabric_getter)
     _mj_data_helper.for_each_piece(m, d, add_piece)
     return sim_pieces,piece_names
 

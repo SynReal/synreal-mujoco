@@ -1,22 +1,16 @@
 import time
 
-import style3dsim as sim
-
 import mujoco.viewer
 
 import mujoco_style3d.s3d_mj as s3d_mj
-
-def log_in(usr,pw):
-    sim.login(usr, pw, True, None)
-
-log_in('simsdk001','xSXiaCMd')
+from mujoco_style3d import piece_property
 
 m , d = s3d_mj.load_data('xml_projects/piper_secription_with_cloth/piper_description.xml')
-#m , d = s3d_mj.load_data('F:/mujoco_proj/intro_workshop/main.xml')
 
-world = s3d_mj.get_a_sim_world()
+world = s3d_mj.get_a_sim_world(m)
 
-sim_pieces, piece_names = s3d_mj.add_piece_to_sim(m, d, world)
+fabric_getter = lambda nama : piece_property.get_piece_property_default()
+sim_pieces, piece_names = s3d_mj.add_piece_to_sim(m, d, world, fabric_getter)
 rigid_bodies = s3d_mj.add_rigid_body_to_sim(m, d, world)
 
 sync_rate = 1
