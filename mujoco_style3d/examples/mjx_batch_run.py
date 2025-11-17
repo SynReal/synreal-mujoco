@@ -17,10 +17,13 @@ with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
 
     while viewer.is_running() and fi < 500 :
 
+        # set action_batch here
+        #mjx_mng.set_rigidbody_action(act_batch)
+
         mjx_mng.step()
 
         mjx_mng.set_rigidbody_pos_to_mujoco( batch_to_show)
-        mjx_mng.set_piece_pos_to_mujoco( batch_to_show)
+        mjx_mng.set_cloth_pos_to_mujoco(batch_to_show)
 
         print(f"frame {fi} ")
         viewer.sync()

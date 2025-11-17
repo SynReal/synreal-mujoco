@@ -12,6 +12,7 @@ import os
 import jax
 
 
+
 class mjx_data_manager:
 
     def __init__(self,xml_path,batch_size):
@@ -50,11 +51,17 @@ class mjx_data_manager:
         mj_data.geom_xpos = new_mj_data.geom_xpos
 
 
-    def set_piece_pos_to_mujoco(self, batch_i):
+    def set_rigidbody_action(self,act_batch):
+        mjx_model, mjx_data = self._get_mjx_data()
+        mjx_data_with_ctrl = mjx_data.replace(ctrl=act_batch)
+        self.mjx_data.set_mjx_data(mjx_data_with_ctrl)  #
+
+
+    def set_cloth_pos_to_mujoco(self, batch_i):
         mj_data = self.sim_world.mj_datas[batch_i]
-        sim_pieces = self.sim_world.sim_pieces[batch_i]
-        piece_names = self.sim_world.piece_names[batch_i]
-        s3d_mj.set_cloth_pos_to_mujoco(self.sim_world.mj_model, mj_data, sim_pieces, piece_names)
+        sim_clothes = self.sim_world.sim_clothes[batch_i]
+        cloth_names = self.sim_world.cloth_names[batch_i]
+        s3d_mj.set_cloth_pos_to_mujoco(self.sim_world.mj_model, mj_data, sim_clothes, cloth_names)
 
 
     def _get_mjx_data(self):
@@ -105,13 +112,13 @@ class mjx_data_manager:
 
             _transform_mj_rigidbody_pos(mj_model, mjx_data, delta_pos)
 
-            sim_pieces, piece_names = s3d_mj.add_cloth_to_sim(mj_model, mj_data, world, lambda name: cloth_property.get_cloth_property_default())
+            sim_clothes, cloth_names = s3d_mj.add_cloth_to_sim(mj_model, mj_data, world, lambda name: cloth_property.get_cloth_property_default())
             rigid_bodies = s3d_mj.add_rigid_body_to_sim(mj_model, mjx_data, world)
 
             ret.mj_datas.append(mj_data)
             ret.mjx_datas.append(mjx_data)
-            ret.sim_pieces.append(sim_pieces)
-            ret.piece_names.append(piece_names)
+            ret.sim_clothes.append(sim_clothes)
+            ret.cloth_names.append(cloth_names)
             ret.rigid_bodies.append(rigid_bodies)
 
         return ret
@@ -129,10 +136,10 @@ def _find_xml_nodes_by_name(matching_nodes,element, target_name ):
 
 
 class _sim_data:
-    def __init__(self,world,sim_pieces,piece_names,rigid_bodies,mj_model,mj_datas,mjx_datas):
+    def __init__(self, world, sim_clothes, cloth_names, rigid_bodies, mj_model, mj_datas, mjx_datas):
         self.world = world
-        self.sim_pieces = sim_pieces
-        self.piece_names = piece_names
+        self.sim_clothes = sim_clothes
+        self.cloth_names = cloth_names
         self.rigid_bodies = rigid_bodies
         self.mj_model = mj_model
         self.mj_datas = mj_datas
@@ -214,7 +221,7 @@ def _do_transform_mj_rigidbody_pos( xpos, delta_pos):
 def _transform_mj_rigidbody_pos( mj_model, mj_data, delta_pos):
     s3d_mj_helper.for_each_rigid_meshes(mj_model, mj_data, lambda i, x, t, xmat, xpos: _do_transform_mj_rigidbody_pos(xpos,delta_pos) )
 
-def _do_transform_piece_pos(x,delta_pos):
+def _do_transform_piece_pos(x, delta_pos):
     x[:] += delta_pos
 
 def _transform_piece_pos( m,d,delta_pos):
