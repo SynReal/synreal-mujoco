@@ -7,17 +7,9 @@ import jax
 from jax import numpy as jp
 import numpy as np
 
-from etils import epath
-
-from brax import base
 from brax import envs
-from brax import math
-from brax.base import Base, Motion, Transform
-from brax.base import State as PipelineState
 from brax.envs.base import Env, PipelineEnv, State
-from brax.mjx.base import State as MjxState
 from brax.training.agents.ppo import train as ppo
-from brax.training.agents.ppo import networks as ppo_networks
 from brax.io import html, mjcf, model
 
 import matplotlib.pyplot as plt
@@ -32,8 +24,6 @@ print(jax.devices())
 #@title Humanoid Env
 HUMANOID_ROOT_PATH = 'xml_projects/humanoid_with_cloth'
 TRAINED_MODEL_PATH = os.path.join(HUMANOID_ROOT_PATH,'trained_model')
-
-
 
 class Humanoid(PipelineEnv):
 
@@ -125,6 +115,8 @@ class Humanoid(PipelineEnv):
     velocity = (com_after - com_before) / self.dt
     forward_reward = self._forward_reward_weight * velocity[0]
 
+    chasing_reward = jp.linalg.norm( data.subtree_com[1] - newcloth_x)
+
     min_z, max_z = self._healthy_z_range
     is_healthy = jp.where(data.q[2] < min_z, 0.0, 1.0)
     is_healthy = jp.where(data.q[2] > max_z, 0.0, is_healthy)
@@ -136,7 +128,9 @@ class Humanoid(PipelineEnv):
     ctrl_cost = self._ctrl_cost_weight * jp.sum(jp.square(action))
 
     obs = self._get_obs(data, action, newcloth_x)
-    reward = forward_reward + healthy_reward - ctrl_cost
+    #reward = forward_reward + healthy_reward - ctrl_cost
+    reward = chasing_reward + healthy_reward - ctrl_cost
+
     done = 1.0 - is_healthy if self._terminate_when_unhealthy else 0.0
     state.metrics.update(
         forward_reward=forward_reward,
@@ -180,7 +174,6 @@ envs.register_environment(env_name, Humanoid)
 
 env = envs.get_environment(env_name)
 
-
 # define the jit reset/step functions
 jit_reset = jax.jit(env.reset)
 jit_step = jax.jit(env.step)
@@ -197,7 +190,6 @@ for i in range(10):
 
 frames = env.render(rollout, camera='side')
 
-
 def update(fi,ax):
     ax.imshow(frames[fi])
 
@@ -208,25 +200,24 @@ video_file = os.path.join(HUMANOID_ROOT_PATH , 'before_train.gif')
 ani.save(video_file, writer='imagemagick', fps=60)
 print(f'save video to {video_file} !')
 
-
 train = True
 
 model_path = os.path.join(TRAINED_MODEL_PATH,'humanoid_walk')
 
 if train:
-    #train_fn = functools.partial(
-    #    ppo.train, num_timesteps=20_000_000, num_evals=5, reward_scaling=0.1,
-    #    episode_length=1000, normalize_observations=True, action_repeat=1,
-    #    unroll_length=10, num_minibatches=24, num_updates_per_batch=8,
-    #    discounting=0.97, learning_rate=3e-4, entropy_cost=1e-3, num_envs=3072,
-    #    batch_size=512, seed=0)
-
     train_fn = functools.partial(
-        ppo.train, num_timesteps=1, num_evals=3, reward_scaling=0.1,
-        episode_length=10, normalize_observations=True, action_repeat=1,
-        unroll_length=10, num_minibatches=12, num_updates_per_batch=8,
-        discounting=0.97, learning_rate=3e-4, entropy_cost=1e-3, num_envs=1,
-        batch_size=2, seed=0)
+        ppo.train, num_timesteps=20_000_000, num_evals=5, reward_scaling=0.1,
+        episode_length=1000, normalize_observations=True, action_repeat=1,
+        unroll_length=10, num_minibatches=24, num_updates_per_batch=8,
+        discounting=0.97, learning_rate=3e-4, entropy_cost=1e-3, num_envs=3072,
+        batch_size=512, seed=0)
+
+    #train_fn = functools.partial(
+    #    ppo.train, num_timesteps=1, num_evals=3, reward_scaling=0.1,
+    #    episode_length=10, normalize_observations=True, action_repeat=1,
+    #    unroll_length=10, num_minibatches=12, num_updates_per_batch=8,
+    #    discounting=0.97, learning_rate=3e-4, entropy_cost=1e-3, num_envs=1,
+    #    batch_size=2, seed=0)
 
 
     x_data = []
@@ -247,12 +238,10 @@ if train:
 
       print(f'progressing {len(x_data)-1}:   {num_steps} {r} {r_std}')
 
-
     make_inference_fn, params, _= train_fn(environment=env, progress_fn=progress)
 
     print(f'time to jit: {times[1] - times[0]}')
     print(f'time to train: {times[-1] - times[1]}')
-
 
     # plot
     fig = plt.figure()
