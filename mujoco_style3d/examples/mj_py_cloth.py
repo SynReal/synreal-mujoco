@@ -9,7 +9,7 @@ m , d = s3d_mj.load_data('xml_projects/piper_secription_with_cloth/piper_descrip
 
 world = s3d_mj.get_a_sim_world(m)
 
-sim_pieces, piece_names = s3d_mj.add_cloth_to_sim(m, d, world, lambda nama : cloth_property.get_piece_property_default())
+sim_pieces, piece_names = s3d_mj.add_cloth_to_sim(m, d, world, lambda nama : cloth_property.get_cloth_property_default())
 rigid_bodies = s3d_mj.add_rigid_body_to_sim(m, d, world)
 
 sync_rate = 1

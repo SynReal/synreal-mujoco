@@ -2,8 +2,7 @@
 import style3dsim as sim
 
 
-
-def get_piece_property_default():
+def get_cloth_property_default():
     cloth_attrib = sim.ClothAttrib()
 
     cloth_attrib.stretch_stiff = sim.Vec3f(100, 100, 100)
@@ -15,7 +14,7 @@ def get_piece_property_default():
 
     return cloth_attrib
 
-def get_piece_property_s3d_default():
+def get_cloth_property_s3d_default():
     cloth_attrib = sim.ClothAttrib()
 
     cloth_attrib.stretch_stiff = sim.Vec3f(150, 150, 10)
@@ -27,7 +26,7 @@ def get_piece_property_s3d_default():
 
     return cloth_attrib
 
-def get_piece_property_s3d_wool():
+def get_cloth_property_s3d_wool():
     cloth_attrib = sim.ClothAttrib()
 
     cloth_attrib = sim.ClothAttrib()
@@ -40,7 +39,7 @@ def get_piece_property_s3d_wool():
 
     return cloth_attrib
 
-def get_piece_property_s3d_silk():
+def get_cloth_property_s3d_silk():
     cloth_attrib = sim.ClothAttrib()
     cloth_attrib.stretch_stiff = sim.Vec3f(1000, 1000, 40)
     cloth_attrib.bend_stiff = sim.Vec3f(1.6e-6, 1.5e-6, 1.5e-6)

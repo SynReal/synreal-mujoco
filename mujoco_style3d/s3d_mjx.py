@@ -105,7 +105,7 @@ class mjx_data_manager:
 
             _transform_mj_rigidbody_pos(mj_model, mjx_data, delta_pos)
 
-            sim_pieces, piece_names = s3d_mj.add_cloth_to_sim(mj_model, mj_data, world, lambda name: cloth_property.get_piece_property_default())
+            sim_pieces, piece_names = s3d_mj.add_cloth_to_sim(mj_model, mj_data, world, lambda name: cloth_property.get_cloth_property_default())
             rigid_bodies = s3d_mj.add_rigid_body_to_sim(mj_model, mjx_data, world)
 
             ret.mj_datas.append(mj_data)
