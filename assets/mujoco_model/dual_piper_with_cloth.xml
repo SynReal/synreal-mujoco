@@ -84,7 +84,7 @@
 <!--      piper-->
     <body name="robot_placement_frame" pos="0 0 0.000" quat="1 0 0 0">
       <!--        arm1-->
-      <body name="base_link_left" pos="0 0.25 0" quat="1 0 0 0" childclass="piper" gravcomp="1">
+      <body name="base_link_left" pos="0 0.27 0" quat="1 0 0 0" childclass="piper" gravcomp="1">
           <geom type="mesh" rgba="0.792157 0.819608 0.933333 1" mesh="base_link"/>
           <geom class="collision" mesh="base_link"/>
         <body name="link1" pos="0 0 0.123">
@@ -139,7 +139,7 @@
       </body>
 
          <!--    arm2    -->
-      <body name="base_link_right" pos="0 -0.25 0" quat="1 0 0 0" childclass="piper" gravcomp="1">
+      <body name="base_link_right" pos="0 -0.27 0" quat="1 0 0 0" childclass="piper" gravcomp="1">
           <geom type="mesh" rgba="0.792157 0.819608 0.933333 1" mesh="base_link"/>
           <geom class="collision" mesh="base_link"/>
         <body name="link1_arm2" pos="0 0 0.123">

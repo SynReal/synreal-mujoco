@@ -38,8 +38,8 @@ def print_model_statistics(model: mujoco.MjModel, xml_path: str):
 # *** 第二步: 测试您的模型 ***
 # (取消注释下面两行来进行您的测试)
 # XML_PATH = "/home/hwk/program/deformale_mjx/thirdparty/mujoco_playground/mujoco_playground/external_deps/mujoco_menagerie/franka_emika_panda/mjx_panda.xml"
-# XML_PATH = "/home/hwk/program/deformale_mjx/assets/mujoco_model/dual_piper_with_cloth_simple.xml"
-XML_PATH = "/home/hwk/program/deformale_mjx/assets/mujoco_model/test.xml"
+XML_PATH = "/home/hwk/program/deformale_mjx/assets/mujoco_model/dual_piper_with_cloth_simple.xml"
+# XML_PATH = "/home/hwk/program/deformale_mjx/assets/mujoco_model/test.xml"
 
 BATCH_SIZE = 32                          # (!!!) 同样从一个小值开始
 

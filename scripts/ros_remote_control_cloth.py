@@ -112,8 +112,8 @@ class MujocoRosController:
         
         # Gripper: joint7 和 joint8 (反向)
         gripper_value = positions[6]
-        self.latest_positions[joint_names[6]] = gripper_value
-        self.latest_positions[joint_names[7]] = -gripper_value
+        self.latest_positions[joint_names[6]] = gripper_value/0.688*0.35
+        self.latest_positions[joint_names[7]] = -gripper_value/0.688*0.35
 
     def start_ros_listener(self):
         """启动ROS监听器"""

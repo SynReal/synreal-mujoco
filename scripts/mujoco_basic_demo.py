@@ -25,8 +25,8 @@ m , d = s3d_mj.load_data(xml_path)
 # cloth_params
 from mujoco_style3d.s3d_mj import ClothParams
 cloth_params = ClothParams()
-cloth_params.stretch_stiff = sim.Vec3f(75000,200000, 20000)
-cloth_params.bend_stiff = sim.Vec3f(1e3, 2e3, 1.5e3)
+cloth_params.stretch_stiff = sim.Vec3f(230,230, 230)
+cloth_params.bend_stiff = sim.Vec3f(1000, 1000, 1000)
 cloth_params.density = 220
 cloth_params.static_friction = 0.6
 cloth_params.dynamic_friction = 0.6
