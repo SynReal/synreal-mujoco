@@ -1,6 +1,9 @@
+import os.path
+
 import style3dsim as sim
 import mujoco
 import numpy as np
+import json
 
 import mujoco_style3d._mj_data_helper as _mj_data_helper
 
@@ -52,10 +55,29 @@ def _log_callback(file_name: str, func_name: str, line: int, level: sim.LogLevel
     elif level == sim.LogLevel.DEBUG:
         print("[debug]: ", message)
 
+def _log_in_simulation():
+    if not sim.is_login():
+        curr_dir = os.path.dirname(__file__)
+        login_file=os.path.join(curr_dir,'..','simulation_login.json')
+        if os.path.exists(login_file):
+            with open(login_file,'r') as f:
+                login=json.load(f)
+                name=login['name']
+                pass_word=login['pass_word']
+        else:
+            name=input('Enter your name : ')
+            pass_word=input('Enter your password : ')
+
+        sim.login(name, pass_word, True, None)
+
+    if sim.is_login():
+        print(f'login successful {name}')
+    else:
+        print('login failed')
+
 def get_a_sim_world(m):
 
-    if not sim.is_login():
-        sim.login('simsdk001', 'xSXiaCMd', True, None)
+    _log_in_simulation()
 
     sim.set_log_callback(_log_callback)
 
