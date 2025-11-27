@@ -2,6 +2,10 @@
 import mujoco.viewer
 
 import mujoco_style3d.s3d_mjx as s3d_mjx
+import mujoco_style3d.s3d_mj as s3d_mj
+
+
+s3d_mj.log_in_simulation(login_file='../../simulation_login.json')
 
 batch_size = 2
 mjx_mng = s3d_mjx.mjx_data_manager('xml_projects/piper_secription_with_cloth/piper_description1.xml', batch_size)

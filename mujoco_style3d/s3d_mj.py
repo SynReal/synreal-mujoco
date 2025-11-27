@@ -55,18 +55,22 @@ def _log_callback(file_name: str, func_name: str, line: int, level: sim.LogLevel
     elif level == sim.LogLevel.DEBUG:
         print("[debug]: ", message)
 
-def _log_in_simulation():
+def log_in_simulation(**kwargs):
+    name=''
+
     if not sim.is_login():
-        curr_dir = os.path.dirname(__file__)
-        login_file=os.path.join(curr_dir,'..','simulation_login.json')
-        if os.path.exists(login_file):
+        login_file = None
+        if 'login_file' in kwargs:
+            login_file = kwargs['login_file']
+
+        if login_file and os.path.exists(login_file):
             with open(login_file,'r') as f:
                 login=json.load(f)
-                name=login['name']
-                pass_word=login['pass_word']
+                name = login['name']
+                pass_word = login['pass_word']
         else:
-            name=input('Enter your name : ')
-            pass_word=input('Enter your password : ')
+            name = input('Enter your name : ')
+            pass_word = input('Enter your password : ')
 
         sim.login(name, pass_word, True, None)
 
@@ -77,7 +81,7 @@ def _log_in_simulation():
 
 def get_a_sim_world(m):
 
-    _log_in_simulation()
+    log_in_simulation()
 
     sim.set_log_callback(_log_callback)
 
