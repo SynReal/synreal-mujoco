@@ -51,6 +51,11 @@ def _get_flex_tri(id, m: mujoco.MjModel):
     num=_get_flex_tri_num_buffer(m)[id]
     return _get_flex_tri_buffer(m)[offset * 3:(offset + num) * 3].reshape(-1, 3)
 
+def _get_flex_contype(index, m: mujoco.MjModel):
+    return _mj_get_attr(m, "flex_contype")[index]
+
+def _get_flex_conaffinity(index, m: mujoco.MjModel):
+    return _mj_get_attr(m, "flex_conaffinity")[index]
 
 def _set_flex_vertices(m: mujoco.MjModel, d: mujoco.MjData, flex_name: str, verts: np.ndarray) -> None:
     id = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_FLEX, flex_name)
@@ -98,7 +103,7 @@ def to_sim_transfrom(xmat,xpos):
     transform.rotation = sim.Quat(mat)
     return  transform
 
-def for_each_cloth(m: mujoco.MjModel, d: mujoco.MjData, fn):
+def for_each_cloth(m: mujoco.MjModel, d: mujoco.MjData, fn ):
     vert_num = _get_flex_vert_num_buffer(m)
 
     num_flex = getattr(m, "nflex", 0)
@@ -110,13 +115,21 @@ def for_each_cloth(m: mujoco.MjModel, d: mujoco.MjData, fn):
 
         x = _get_flex_pos(i, m, d)
         t = _get_flex_tri(i, m)
+
+        contype = _get_flex_contype(i,m)
+        conaffinity = _get_flex_conaffinity(i,m)
+
         name = mujoco.mj_id2name(m, mujoco.mjtObj.mjOBJ_FLEX, i)
-        fn(x,t,name)
+
+        fn( x=x, t=t, name = name, collision_mask = conaffinity, collision_group = contype )
 
 def for_each_rigid_meshes(m: mujoco.MjModel,d: mujoco.MjData, fn):
     mesh_ids = _mj_get_attr(m, "geom_dataid")
     geom_type = _mj_get_attr(m, "geom_type")
     mesh_graph_begin = _mj_get_attr(m, "mesh_graphadr")
+
+    contype = _mj_get_attr(m, "geom_contype")
+    conaffinity =  _mj_get_attr(m,"geom_conaffinity")
 
     sloti = 0
     for i in range(_get_geo_num(m)):
@@ -131,9 +144,8 @@ def for_each_rigid_meshes(m: mujoco.MjModel,d: mujoco.MjData, fn):
         if  mesh_graph_begin[mesh_id] < 0:
             continue
 
-
-        t=_get_mesh_tri(mesh_id, m)
-        x=_get_mesh_pos(mesh_id, m)
+        t = _get_mesh_tri(mesh_id, m)
+        x = _get_mesh_pos(mesh_id, m)
 
         xmat =_mj_get_attr(d, "geom_xmat" )
         xpos =_mj_get_attr(d, "geom_xpos" )
@@ -141,7 +153,7 @@ def for_each_rigid_meshes(m: mujoco.MjModel,d: mujoco.MjData, fn):
         geo_pos = xpos[i]
         geo_mat = xmat[i]
 
-        fn(sloti, x, t, geo_mat, geo_pos)
+        fn( rigid_i = sloti, x=x, t=t, geo_mat=geo_mat, geo_pos=geo_pos, collision_mask = conaffinity[sloti], collision_group = contype[sloti])
 
         sloti += 1
 

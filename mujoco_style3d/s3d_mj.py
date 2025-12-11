@@ -7,19 +7,28 @@ import json
 
 import mujoco_style3d._mj_data_helper as _mj_data_helper
 
-def _add_cloth_to_sim(x, t, name, world, sim_clothes, cloth_names, fabric_getter):
+def _add_cloth_to_sim(x, t, collision_mask, collision_group, name, world, sim_clothes, cloth_names, fabric_getter):
 
-    cloth = sim.Cloth(t, x, np.array([], dtype=float), False)
+    cloth = sim.Cloth(t, x, np.array([], dtype = float), False)
 
     cloth_attrib = fabric_getter(name)
     cloth.set_attrib(cloth_attrib)
 
     cloth.attach(world)
 
+    n=len(x)
+
+    groups = np.full(n, collision_group)
+    masks = np.full(n, collision_mask)
+
+    ver_ind = np.arange(n)
+
+    cloth.set_collision_group_masks( groups, masks, ver_ind)
+
     sim_clothes.append(cloth)
     cloth_names.append(name)
 
-def _add_rigid_body_to_sim(i, x, t, xmat, xpos, world, rigid_bodies):
+def _add_rigid_body_to_sim(rigid_i, x, t, xmat, xpos, collision_mask, collision_group, world, rigid_bodies):
 
     transform = _mj_data_helper. to_sim_transfrom(xmat,xpos)
 
@@ -35,6 +44,9 @@ def _add_rigid_body_to_sim(i, x, t, xmat, xpos, world, rigid_bodies):
     rigid_body.set_attrib(rigid_body_attrib)
 
     rigid_body.set_pin(True)
+
+    rigid_body.set_collision_group( collision_group )
+    rigid_body.set_collision_mask( collision_mask )
 
     rigid_body.attach(world)
 
@@ -109,20 +121,18 @@ def load_data(xml_path):
 def add_cloth_to_sim(m, d, world, cloth_property_getter):
     sim_clothes = []
     cloth_names = []
-    add_cloth = lambda x, t, name :_add_cloth_to_sim(x, t, name, world, sim_clothes, cloth_names, cloth_property_getter)
-    _mj_data_helper.for_each_cloth(m, d, add_cloth)
+    add_cloth = lambda x, t, collision_mask, collision_group, name :_add_cloth_to_sim(x, t, collision_mask, collision_group, name, world, sim_clothes, cloth_names, cloth_property_getter)
+    _mj_data_helper.for_each_cloth(m, d, add_cloth  )
     return sim_clothes,cloth_names
 
 
 def add_rigid_body_to_sim(m, d, world):
     objects = []
-
-    _mj_data_helper.for_each_rigid_meshes(m, d, lambda i,x,t,xmat,xpos:_add_rigid_body_to_sim(i,x,t,xmat,xpos, world, objects))
-
+    add_rigid_body = lambda rigid_i, x, t, geo_mat, geo_pos, collision_mask, collision_group : _add_rigid_body_to_sim(rigid_i, x, t, geo_mat, geo_pos, collision_mask, collision_group, world, objects)
+    _mj_data_helper.for_each_rigid_meshes(m, d, add_rigid_body )
     return  objects
 
 def set_cloth_pos_to_mujoco(m, d, sim_clothes, cloth_names):
-
 
     for cloth, cloth_name in zip(sim_clothes, cloth_names):
         x = cloth.get_positions()
@@ -130,5 +140,5 @@ def set_cloth_pos_to_mujoco(m, d, sim_clothes, cloth_names):
 
 def set_rigid_body_pos_to_sim(m, d,  rigid_bodies):
     last_rigid_body_transform = [rb.get_transform() for rb in rigid_bodies]
-    _mj_data_helper.for_each_rigid_meshes(m, d, lambda i, x, t, xmat,xpos : _set_rigid_body_to_sim(i, x, t, xmat,xpos, rigid_bodies, last_rigid_body_transform))
+    _mj_data_helper.for_each_rigid_meshes(m, d, lambda rigid_i, x, t, geo_mat, geo_pos , collision_mask, collision_group : _set_rigid_body_to_sim(rigid_i, x, t, geo_mat, geo_pos, rigid_bodies, last_rigid_body_transform))
 
