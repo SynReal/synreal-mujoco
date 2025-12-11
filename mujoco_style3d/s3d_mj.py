@@ -7,7 +7,6 @@ import json
 
 import mujoco_style3d._mj_data_helper as _mj_data_helper
 
-
 def _add_cloth_to_sim(x, t, name, world, sim_clothes, cloth_names, fabric_getter):
 
     cloth = sim.Cloth(t, x, np.array([], dtype=float), False)
@@ -92,6 +91,7 @@ def get_a_sim_world(m):
     world_attrib.ground_direction = sim.Vec3f(0., 0., 1.)
     world_attrib.time_step = m.opt.timestep
     world_attrib.enable_rigid_self_collision = False
+    world_attrib.enable_collision_force_map_rigidbody_piece = True
     world.set_attrib(world_attrib)
 
     print(f'time step {world_attrib.time_step}')
@@ -122,6 +122,8 @@ def add_rigid_body_to_sim(m, d, world):
     return  objects
 
 def set_cloth_pos_to_mujoco(m, d, sim_clothes, cloth_names):
+
+
     for cloth, cloth_name in zip(sim_clothes, cloth_names):
         x = cloth.get_positions()
         _mj_data_helper.set_cloth_positions(m, d, cloth_name, x)
