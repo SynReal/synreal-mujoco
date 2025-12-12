@@ -29,5 +29,5 @@ with mujoco.viewer.launch_passive(mj_model, mj_data) as viewer:
         mjx_mng.set_cloth_pos_to_mujoco( batch_to_show)
 
         print(f"frame {fi} ")
-        viewer.sync()
+        viewer. sync()
         fi += 1

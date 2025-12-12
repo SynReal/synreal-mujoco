@@ -32,27 +32,27 @@ def _add_rigid_body_to_sim(rigid_i, x, t, xmat, xpos, collision_mask, collision_
 
     transform = _mj_data_helper. to_sim_transfrom(xmat,xpos)
 
-    mesh = sim.Mesh(t, x)
+    mesh = sim. Mesh(t, x)
 
-    rigid_body = sim.RigidBody(mesh,transform)
+    rigid_body = sim. RigidBody( mesh, transform )
 
-    rigid_body_attrib = sim.RigidBodyAttrib()
-    rigid_body_attrib.dynamic_friction = 0.03
-    rigid_body_attrib.static_friction = 0.03
-    rigid_body_attrib.mass = 3e-2
+    rigid_body_attrib = sim. RigidBodyAttrib()
+    rigid_body_attrib. dynamic_friction = 0.03
+    rigid_body_attrib. static_friction = 0.03
+    rigid_body_attrib. mass = 3e-2
 
-    rigid_body.set_attrib(rigid_body_attrib)
+    rigid_body. set_attrib(rigid_body_attrib)
 
-    rigid_body.set_pin(True)
+    rigid_body. set_pin(True)
 
-    rigid_body.set_collision_group( collision_group )
-    rigid_body.set_collision_mask( collision_mask )
+    rigid_body. set_collision_group( collision_group )
+    rigid_body. set_collision_mask( collision_mask )
 
-    rigid_body.attach(world)
+    rigid_body. attach( world )
 
-    rigid_bodies.append(rigid_body)
+    rigid_bodies. append( rigid_body )
 
-def _set_rigid_body_to_sim(i, x, t, xmat,xpos, rigid_bodies,last_rigid_body_transform):
+def _set_rigid_body_to_sim(i,  xmat, xpos, rigid_bodies, last_rigid_body_transform):
     rigid_bodies[i].move(last_rigid_body_transform[i],_mj_data_helper.to_sim_transfrom(xmat,xpos))
 
 
@@ -140,5 +140,45 @@ def set_cloth_pos_to_mujoco(m, d, sim_clothes, cloth_names):
 
 def set_rigid_body_pos_to_sim(m, d,  rigid_bodies):
     last_rigid_body_transform = [rb.get_transform() for rb in rigid_bodies]
-    _mj_data_helper.for_each_rigid_meshes(m, d, lambda rigid_i, x, t, geo_mat, geo_pos , collision_mask, collision_group : _set_rigid_body_to_sim(rigid_i, x, t, geo_mat, geo_pos, rigid_bodies, last_rigid_body_transform))
+    _mj_data_helper.for_each_rigid_meshes(m, d, lambda rigid_i, x, t, geo_mat, geo_pos , collision_mask, collision_group : _set_rigid_body_to_sim(rigid_i,  geo_mat, geo_pos, rigid_bodies, last_rigid_body_transform))
+
+def set_rigid_body_pos_with_velocity(rigid_bodies, last_transform, curr_transform ):
+    for ri in range(len(rigid_bodies)):
+        rb = rigid_bodies[ri]
+        last_rot,last_translate = last_transform if last_transform is not None else curr_transform
+        curr_rot,curr_translate = curr_transform
+        rb.move(_mj_data_helper.to_sim_transfrom(last_rot[ri],last_translate[ri]), _mj_data_helper.to_sim_transfrom(curr_rot[ri],curr_translate[ri]))
+
+
+def get_cloth_pos(sim_clothes, cloth_names):
+    ret = []
+    for cloth, cloth_name in zip(sim_clothes, cloth_names):
+        x = cloth.get_positions()
+        ret.append(x)
+    return ret
+
+
+def get_rigid_body_mesh( m: mujoco.MjModel, d: mujoco.MjData):
+    ret_x=[]
+    ret_t=[]
+
+    def append_data(rigid_i, x, t, geo_mat, geo_pos , collision_mask, collision_group):
+        ret_x.append(x)
+        ret_t.append(t)
+
+    _mj_data_helper.for_each_rigid_meshes(m, d, append_data)
+
+    return ret_x,ret_t
+
+def get_rigid_body_transform( m: mujoco.MjModel, d: mujoco.MjData):
+    ret_geo_mat=[]
+    ret_geo_pos=[]
+
+    def append_data(rigid_i, x, t, geo_mat, geo_pos , collision_mask, collision_group):
+        ret_geo_mat.append(geo_mat)
+        ret_geo_pos.append(geo_pos)
+
+    _mj_data_helper.for_each_rigid_meshes(m, d, append_data)
+
+    return ret_geo_mat,ret_geo_pos
 
