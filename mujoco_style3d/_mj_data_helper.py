@@ -108,10 +108,11 @@ def for_each_cloth(m: mujoco.MjModel, d: mujoco.MjData, fn ):
 
     num_flex = getattr(m, "nflex", 0)
 
-    if num_flex!=len(vert_num):
+    if num_flex != len(vert_num):
         return
 
-    for i in range(len(vert_num)):
+    cloth_num = len(vert_num)
+    for i in range(cloth_num):
 
         x = _get_flex_pos(i, m, d)
         t = _get_flex_tri(i, m)
@@ -153,7 +154,7 @@ def for_each_rigid_meshes(m: mujoco.MjModel,d: mujoco.MjData, fn):
         geo_pos = xpos[i]
         geo_mat = xmat[i]
 
-        fn( rigid_i = sloti, x=x, t=t, geo_mat=geo_mat, geo_pos=geo_pos, collision_mask = conaffinity[sloti], collision_group = contype[sloti])
+        fn( rigid_i = sloti, x=x, t=t, geo_mat=geo_mat, geo_pos=geo_pos, collision_mask = conaffinity[i], collision_group = contype[i])
 
         sloti += 1
 
