@@ -105,6 +105,8 @@ def get_a_sim_world(m):
     world_attrib.time_step = m.opt.timestep
     world_attrib.enable_rigid_self_collision = False
     world_attrib.enable_collision_force_map_rigidbody_piece = True
+    world_attrib.enable_plastic_bending = True
+    world_attrib.enable_volume_conserve = True
     world.set_attrib(world_attrib)
 
     print(f'time step {world_attrib.time_step}')
