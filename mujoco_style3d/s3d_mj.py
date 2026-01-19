@@ -34,8 +34,7 @@ def _add_rigid_body_to_sim(rigid_i, x, t, xmat, xpos, collision_mask, collision_
 
     mesh = sim. Mesh(t, x)
 
-    rigid_body = sim.RigidBody.create_mesh( mesh, transform )
-    #rigid_body = sim.RigidBody.create_sphere( 0.1, transform )
+    rigid_body = sim. RigidBody( mesh, transform )
 
     rigid_body_attrib = sim. RigidBodyAttrib()
     rigid_body_attrib. dynamic_friction = 0.03
