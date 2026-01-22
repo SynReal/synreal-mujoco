@@ -133,16 +133,18 @@ def for_each_rigid_meshes(m: mujoco.MjModel,d: mujoco.MjData, fn):
     conaffinity =  _mj_get_attr(m,"geom_conaffinity")
 
     sloti = 0
-    for i in range(_get_geo_num(m)):
+    geom_num = _get_geo_num(m)
+    for i in range(geom_num):
 
         mesh_id = mesh_ids[i]
 
-        if mesh_id < 0:
-            continue
-        if geom_type[i] != mujoco.mjtGeom.mjGEOM_MESH:
+        if mesh_id < 0: # refer to a exsited mesh
             continue
 
-        if  mesh_graph_begin[mesh_id] < 0:
+        if geom_type[i] != mujoco.mjtGeom.mjGEOM_MESH:   # geom type is mesh type
+            continue
+
+        if  mesh_graph_begin[mesh_id] < 0: # is a collision mesh
             continue
 
         t = _get_mesh_tri(mesh_id, m)

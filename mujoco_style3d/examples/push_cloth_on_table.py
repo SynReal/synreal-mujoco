@@ -17,6 +17,9 @@ rigid_bodies = s3d_mj.add_rigid_body_to_sim(m, d, world)
 
 mocap_id = m.body('palm').mocapid[0]
 
+id1 = m.actuator('ffa1').id
+id2 = m.actuator('ffa2').id
+
 sync_rate = 1
 
 with mujoco.viewer. launch_passive(m, d) as viewer:
@@ -27,7 +30,17 @@ with mujoco.viewer. launch_passive(m, d) as viewer:
 
         begin0_t = time. time()
 
-        d.mocap_pos[mocap_id]=np.array([ 0.01 * fi , 0.0, 0.3 ])
+        #palm_pos = d. mocap_pos[mocap_id]
+        if  fi < 200:
+            z = np.clip(0.3 - 0.001 * float(fi), 0.21 , 1 )
+
+            d. mocap_pos[mocap_id] = np. array([ 0.005 * fi , 0.5 , z])
+
+            target_angle = 1.0
+            d.ctrl[id1] = target_angle
+            d.ctrl[id2] = target_angle
+            #d.ctrl[3] = target_angle
+
 
         mujoco. mj_step(m, d)
 

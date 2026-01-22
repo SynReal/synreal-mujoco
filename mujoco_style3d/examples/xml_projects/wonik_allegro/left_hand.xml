@@ -10,7 +10,7 @@
       <geom density="800"/>
 
       <default class="visual">
-        <geom type="mesh" contype="0" conaffinity="0" group="2" material="black"/>
+        <geom type="mesh" contype="1" conaffinity="1" group="2" material="black"/>
         <default class="palm_visual">
           <geom mesh="base_link"/>
         </default>
@@ -126,7 +126,7 @@
   </asset>
 
   <worldbody>
-    <body name="palm" quat="0 1 0 1" childclass="allegro_left" mocap="true">
+    <body name="palm" quat="0 -1 0 1" childclass="allegro_left" mocap="true">
       <geom quat="1 -1 0 0" class="palm_visual" mesh="base_link_left"/>
       <geom class="palm_collision"/>
       <!-- Ring finger -->
@@ -235,7 +235,7 @@
         <geom  type="mesh" mesh="table" />
     </body>
 
-    <flexcomp name="cloth" type="mesh" pos="-0.3 -1.5 0.0" quat="1 0 0 0" radius=".0005" dim="2" rgba="1 0.2 0.3 1" custom="true" file="50k_plane.obj">
+    <flexcomp name="cloth" type="mesh" pos="-0.3 -1.5 -0.05" quat="1 0 0 0" radius=".0005" dim="2" rgba="1 0.2 0.3 1" custom="true" file="50k_plane.obj">
     </flexcomp>
 
   </worldbody>
