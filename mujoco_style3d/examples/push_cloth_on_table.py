@@ -1,6 +1,7 @@
 import time
 
 import mujoco.viewer
+import numpy as np
 
 import mujoco_style3d.s3d_mj as s3d_mj
 from mujoco_style3d import cloth_property
@@ -14,6 +15,8 @@ world = s3d_mj.get_a_sim_world(m)
 sim_cloth, cloth_names = s3d_mj.add_cloth_to_sim(m, d, world, lambda nama : cloth_property.get_cloth_property_default())
 rigid_bodies = s3d_mj.add_rigid_body_to_sim(m, d, world)
 
+mocap_id = m.body('palm').mocapid[0]
+
 sync_rate = 1
 
 with mujoco.viewer. launch_passive(m, d) as viewer:
@@ -23,6 +26,8 @@ with mujoco.viewer. launch_passive(m, d) as viewer:
     while viewer.is_running():
 
         begin0_t = time. time()
+
+        d.mocap_pos[mocap_id]=np.array([ 0.01 * fi , 0.0, 0.3 ])
 
         mujoco. mj_step(m, d)
 
