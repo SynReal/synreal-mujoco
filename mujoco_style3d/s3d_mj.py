@@ -130,7 +130,7 @@ def add_cloth_to_sim(m, d, world, cloth_property_getter):
 
 def add_rigid_body_to_sim(m, d, world):
     objects = []
-    add_rigid_body = lambda rigid_i, x, t, geo_mat, geo_pos, collision_mask, collision_group : _add_rigid_body_to_sim(rigid_i, x, t, geo_mat, geo_pos, collision_mask, collision_group, world, objects)
+    add_rigid_body = lambda rigid_i, x, t, geo_mat, geo_pos, collision_mask, collision_group : _add_rigid_body_to_sim( rigid_i, x, t, geo_mat, geo_pos, collision_mask, collision_group, world, objects )
     _mj_data_helper.for_each_rigid_meshes(m, d, add_rigid_body )
     return  objects
 
@@ -184,3 +184,21 @@ def get_rigid_body_transform( m: mujoco.MjModel, d: mujoco.MjData):
 
     return ret_geo_mat,ret_geo_pos
 
+
+def get_cloth_collision_force_from_rigidbody( m: mujoco.MjModel, d: mujoco.MjData):
+    #TODO:
+    pass
+
+def get_collision_force_from_piece(rigidbody):
+    return rigidbody.get_collision_force_piece()
+
+
+def get_geom_parent( m: mujoco.MjModel, d: mujoco.MjData ):
+    rigid_body_id=[]
+
+    def collect_rg_id(slot_i,geom_id, mesh_id, rb_id):
+        rigid_body_id.append(rb_id)
+
+    _mj_data_helper.for_each_geom_mesh(m,d,collect_rg_id)
+
+    return  rigid_body_id

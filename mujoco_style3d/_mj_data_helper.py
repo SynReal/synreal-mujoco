@@ -124,15 +124,14 @@ def for_each_cloth(m: mujoco.MjModel, d: mujoco.MjData, fn ):
 
         fn( x=x, t=t, name = name, collision_mask = conaffinity, collision_group = contype )
 
-def for_each_rigid_meshes(m: mujoco.MjModel,d: mujoco.MjData, fn):
+
+def for_each_geom_mesh(m: mujoco.MjModel,d: mujoco.MjData, fn):
     mesh_ids = _mj_get_attr(m, "geom_dataid")
     geom_type = _mj_get_attr(m, "geom_type")
     mesh_graph_begin = _mj_get_attr(m, "mesh_graphadr")
+    rigidbody_id = _mj_get_attr(m, "geom_bodyid")
 
-    contype = _mj_get_attr(m, "geom_contype")
-    conaffinity =  _mj_get_attr(m,"geom_conaffinity")
-
-    sloti = 0
+    slot_i=0
     geom_num = _get_geo_num(m)
     for i in range(geom_num):
 
@@ -147,18 +146,32 @@ def for_each_rigid_meshes(m: mujoco.MjModel,d: mujoco.MjData, fn):
         if  mesh_graph_begin[mesh_id] < 0: # is a collision mesh
             continue
 
+        rb_id = rigidbody_id[i]
+        geom_id = i
+        fn(slot_i,geom_id, mesh_id, rb_id)
+        slot_i+=1
+
+
+
+def for_each_rigid_meshes(m: mujoco.MjModel,d: mujoco.MjData, fn):
+
+    contype = _mj_get_attr(m, "geom_contype")
+    conaffinity =  _mj_get_attr(m,"geom_conaffinity")
+
+    def rigid_mesh_fn(slot_i, geom_id, mesh_id, rb_id):
         t = _get_mesh_tri(mesh_id, m)
         x = _get_mesh_pos(mesh_id, m)
 
         xmat =_mj_get_attr(d, "geom_xmat" )
         xpos =_mj_get_attr(d, "geom_xpos" )
 
-        geo_pos = xpos[i]
-        geo_mat = xmat[i]
+        geo_pos = xpos[geom_id]
+        geo_mat = xmat[geom_id]
 
-        fn( rigid_i = sloti, x=x, t=t, geo_mat=geo_mat, geo_pos=geo_pos, collision_mask = conaffinity[i], collision_group = contype[i])
+        fn( rigid_i = slot_i, x=x, t=t, geo_mat=geo_mat, geo_pos=geo_pos, collision_mask = conaffinity[geom_id], collision_group = contype[geom_id])
 
-        sloti += 1
+    for_each_geom_mesh(m,d,rigid_mesh_fn)
+
 
 def set_cloth_positions(m: mujoco.MjModel, d: mujoco.MjData, mesh_name, x):
     _set_flex_vertices(m,d,mesh_name,x)
