@@ -31,7 +31,10 @@ def _get_geom_parent( m: mujoco.MjModel, d: mujoco.MjData ):
     return  rigid_body_id
 
 
-# load
+#### load
+# kwargs: rb_property_fn cloth_property_fn
+#   rb_property_fn(rigidbody_name, rigidbody_attrib)
+#   cloth_property_fn(cloth_name, cloth_attrib)
 def smj_load_data(xml_path, **kwargs):
 
     #rigid_body_property_getter = lambda name : cloth_property.get_rigid_body_property_default(), cloth_property_getter = lambda nama : cloth_property.get_cloth_property_default()):
