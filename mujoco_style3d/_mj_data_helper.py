@@ -131,7 +131,7 @@ def for_each_geom_mesh(m: mujoco.MjModel,d: mujoco.MjData, fn):
     mesh_graph_begin = _mj_get_attr(m, "mesh_graphadr")
     rigidbody_id = _mj_get_attr(m, "geom_bodyid")
 
-    slot_i=0
+    slot_i = 0
     geom_num = _get_geo_num(m)
     for i in range(geom_num):
 

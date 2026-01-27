@@ -2,8 +2,7 @@
 import style3dsim as sim
 
 
-def get_cloth_property_default():
-    cloth_attrib = sim.ClothAttrib()
+def set_cloth_property_default(cloth_attrib):
 
     cloth_attrib.stretch_stiff = sim.Vec3f(100, 100, 100)
     cloth_attrib.bend_stiff = sim.Vec3f(2e-6, 2e-6, 2e-6)
@@ -14,8 +13,7 @@ def get_cloth_property_default():
 
     return cloth_attrib
 
-def get_cloth_property_s3d_default():
-    cloth_attrib = sim.ClothAttrib()
+def set_cloth_property_s3d_default(cloth_attrib):
 
     cloth_attrib.stretch_stiff = sim.Vec3f(150, 150, 10)
     cloth_attrib.bend_stiff = sim.Vec3f(2e-6, 2e-6, 2e-6)
@@ -26,8 +24,7 @@ def get_cloth_property_s3d_default():
 
     return cloth_attrib
 
-def get_cloth_property_s3d_wool():
-    cloth_attrib = sim.ClothAttrib()
+def set_cloth_property_s3d_wool(cloth_attrib):
 
     cloth_attrib = sim.ClothAttrib()
     cloth_attrib.stretch_stiff = sim.Vec3f(1000, 1000, 380)
@@ -39,8 +36,7 @@ def get_cloth_property_s3d_wool():
 
     return cloth_attrib
 
-def get_cloth_property_s3d_silk():
-    cloth_attrib = sim.ClothAttrib()
+def set_cloth_property_s3d_silk(cloth_attrib):
     cloth_attrib.stretch_stiff = sim.Vec3f(1000, 1000, 40)
     cloth_attrib.bend_stiff = sim.Vec3f(1.6e-6, 1.5e-6, 1.5e-6)
     cloth_attrib.density = 0.024
@@ -49,3 +45,10 @@ def get_cloth_property_s3d_silk():
     cloth_attrib.thickness = 1.1e-4
 
     return cloth_attrib
+
+
+## rigid body
+def set_rigid_body_property_default( rigid_body_attrib ):
+    rigid_body_attrib. dynamic_friction = 0.03
+    rigid_body_attrib. static_friction = 0.03
+    rigid_body_attrib. mass = 3e-2

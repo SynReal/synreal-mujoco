@@ -105,7 +105,7 @@
               <joint name="rfj3" class="distal"/>
               <geom class="distal_visual"/>
               <body name="rf_tip">
-                <geom class="fingertip_visual"/>
+                <geom class="fingertip_visual" />
               </body>
             </body>
           </body>
@@ -125,7 +125,7 @@
               <joint name="mfj3" class="distal"/>
               <geom class="distal_visual"/>
               <body name="mf_tip">
-                <geom class="fingertip_visual"/>
+                <geom class="fingertip_visual" />
               </body>
             </body>
           </body>
@@ -145,7 +145,7 @@
               <joint name="ffj3" class="distal"/>
               <geom class="distal_visual"/>
               <body name="ff_tip">
-                <geom class="fingertip_visual"/>
+                <geom class="fingertip_visual" />
               </body>
             </body>
           </body>
@@ -165,7 +165,7 @@
               <joint name="thj3" class="thumb_distal"/>
               <geom class="visual" mesh="link_15.0"/>
               <body name="th_tip">
-                <geom class="thumbtip_visual"/>
+                <geom class="thumbtip_visual" />
               </body>
             </body>
           </body>
@@ -174,7 +174,7 @@
     </body>
 
     <body name="table_body" >
-        <geom  type="mesh" mesh="table" />
+        <geom  name="table_mesh" type="mesh" mesh="table" friction="0.007"/>
     </body>
 
     <flexcomp name="cloth" type="mesh" pos="-0.3 -1.5 -0.05" quat="1 0 0 0" radius=".0005" dim="2" rgba="1 0.6 0.8 1" custom="true" file="50k_plane.obj">
@@ -195,14 +195,14 @@
     <position name="ffa1" joint="ffj1" class="proximal" kp = "2"/>
     <position name="ffa2" joint="ffj2" class="medial" kp = "2"/>
     <position name="ffa3" joint="ffj3" class="distal" kp = "2"/>
-    <position name="mfa0" joint="mfj0" class="base"/>
-    <position name="mfa1" joint="mfj1" class="proximal"/>
-    <position name="mfa2" joint="mfj2" class="medial"/>
-    <position name="mfa3" joint="mfj3" class="distal"/>
-    <position name="rfa0" joint="rfj0" class="base"/>
-    <position name="rfa1" joint="rfj1" class="proximal"/>
-    <position name="rfa2" joint="rfj2" class="medial"/>
-    <position name="rfa3" joint="rfj3" class="distal"/>
+    <position name="mfa0" joint="mfj0" class="base" kp = "10" />
+    <position name="mfa1" joint="mfj1" class="proximal" kp = "2"/>
+    <position name="mfa2" joint="mfj2" class="medial" kp = "2"/>
+    <position name="mfa3" joint="mfj3" class="distal" kp = "2"/>
+    <position name="rfa0" joint="rfj0" class="base" kp = "10"/>
+    <position name="rfa1" joint="rfj1" class="proximal" kp = "2"/>
+    <position name="rfa2" joint="rfj2" class="medial" kp = "2"/>
+    <position name="rfa3" joint="rfj3" class="distal" kp = "2"/>
     <position name="tha0" joint="thj0" class="thumb_base"/>
     <position name="tha1" joint="thj1" class="thumb_proximal"/>
     <position name="tha2" joint="thj2" class="thumb_medial"/>

@@ -3,95 +3,77 @@ import time
 import mujoco.viewer
 import numpy as np
 
-import mujoco_style3d.s3d_mj as s3d_mj
-from mujoco_style3d import cloth_property
+import mujoco_style3d.smj as smj
 
-s3d_mj.log_in_simulation(login_file='../../simulation_login.json') # this line is optional, but a login prompt will pop up latter
+def rigid_body_property_fn(rb_name,attrib):
+    if  rb_name == 'table_mesh':
+        attrib. dynamic_friction = 0.007
+        attrib. static_friction = 0.007
+        attrib. mass = 3e-2
+    else:
+        attrib. dynamic_friction = 0.03
+        attrib. static_friction = 0.03
+        attrib. mass = 3e-2
 
-m , d = s3d_mj.load_data('xml_projects/wonik_allegro/left_hand.xml')
+m , d, mp = smj. smj_load_data('xml_projects/wonik_allegro/left_hand.xml', rb_property_fn = rigid_body_property_fn)
 
-world = s3d_mj.get_a_sim_world(m)
+def set_finger_target_pos(m,d):
 
-sim_cloth, cloth_names = s3d_mj.add_cloth_to_sim(m, d, world, lambda nama : cloth_property.get_cloth_property_default())
-rigid_bodies = s3d_mj.add_rigid_body_to_sim(m, d, world)
-rb_id = s3d_mj.get_geom_parent(m,d)
+    target_angle = 1.0
 
-mocap_id = m.body('palm').mocapid[0]
+    # first finger
+    smj. set_actuator_target_pos(m, d, 'ffa1', target_angle)
+    smj. set_actuator_target_pos(m, d, 'ffa2', target_angle)
 
-id1 = m.actuator('ffa1').id
-id2 = m.actuator('ffa2').id
+    # middle finger
+    smj. set_actuator_target_pos(m, d, 'mfa1', target_angle)
+    smj. set_actuator_target_pos(m, d, 'mfa2', target_angle)
 
-force_rb = []
+    # ring finger (wu ming zhi)
+    smj. set_actuator_target_pos(m, d, 'rfa1', target_angle)
+    smj. set_actuator_target_pos(m, d, 'rfa2', target_angle)
 
-sync_rate = 1
 
 with mujoco.viewer. launch_passive(m, d) as viewer:
 
     fi = 0
 
-    while viewer.is_running():
+    while viewer. is_running():
 
         begin0_t = time. time()
 
-        #palm_pos = d. mocap_pos[mocap_id]
         x = 0.004 * fi
-        if  x < 1.0:
 
-            z = np. clip( 0.3 - 0.001 * float(fi), 0.21 , 1 )
+        if  x < 1.2:
 
-            d. mocap_pos[mocap_id] = np. array([ x , 0.5 , z])
+            z = np. clip( 0.3 - 0.001 * float(fi), 0.210 , 1 )
 
-            target_angle = 1.0
-            d.ctrl[id1] = target_angle
-            d.ctrl[id2] = target_angle
-            #d.ctrl[3] = target_angle
+            smj. set_mocap_pos(m, d,'palm', np. array([ x , 0.5 , z]))
 
-            #force set to  ctrl
+            set_finger_target_pos(m,d)
 
-            if len(force_rb) > 0:
-                for i in range( len(rigid_bodies) ):
-                    l_rb_id =  rb_id[i]
-                    rb_force = force_rb[i]
-                    added = False
-                    for f, bary in zip(*rb_force): # force and bary
+            smj. update_rigidbody_cloth_collision_force(m, d, mp)
+            smj. apply_collision_force_to_rigidbody(m, d, mp) ## cloth affacts rigid body
 
-                        orientation = d. xmat[l_rb_id]
-                        orientation = orientation. reshape(3,3)
-                        torque = orientation @ bary
-                        #torque = np.array([0,0,0])
-                        d. xfrc_applied[l_rb_id] += [ f[0], f[1], f[2], torque[0], torque[1], torque[2] ]
-                        added = True
-                    if added :
-                        pass
-                        #ft = d. xfrc_applied[l_rb_id]
-                        #print(f'force torque: {l_rb_id}, {ft[0]:.2e} {ft[1]:.2e} {ft[2]:.2e} {ft[3]:.2e} {ft[4]:.2e} {ft[5]:.2e}')
-
-        mujoco. mj_step(m, d)
+        smj. smj_rigid_body_step(m, d)
 
         begin1_t = time. time()
 
-        s3d_mj. set_rigid_body_pos_to_sim(m, d, rigid_bodies)
-        world. step_sim()
+        smj. update_rigidbody_to_cloth(m,d,mp)   ## rigid body affacts cloth
 
-        force_rb = []
-        for i in range(len(rigid_bodies)):
-            rb = rigid_bodies[i]
-            f_rb = s3d_mj. get_collision_force_from_piece( rb )
-            force_rb.append(f_rb)
+        smj. smj_cloth_step(mp)
 
         end1_t = time. time()
+
         duration1 = end1_t - begin1_t
 
-        world. fetch_sim(0)
+        smj. update_cloth_to_rigid_body(m,d,mp)  ## fetch cloth position back , for mujoco visual, no force apply to rigidbody yet
 
-        s3d_mj. set_cloth_pos_to_mujoco(m, d, sim_cloth, cloth_names)
+        viewer. sync()
 
-        if fi % sync_rate == 0:
-            viewer. sync()
         fi += 1
 
         end0_t = time. time()
         duration0 = end0_t - begin0_t
-        print("fps = ", 1. / duration0,'\t', 1. / duration1)
-
+        print(f'fps: {1. / duration0:.2f}, sim fps: {1. / duration1:.2f}')
 

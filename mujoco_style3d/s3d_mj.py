@@ -7,16 +7,21 @@ import json
 
 import mujoco_style3d._mj_data_helper as _mj_data_helper
 
-def _add_cloth_to_sim(x, t, collision_mask, collision_group, name, world, sim_clothes, cloth_names, fabric_getter):
+
+
+def _add_cloth_to_sim(x, t, collision_mask, collision_group, name, world, sim_clothes, cloth_names, fabric_setter):
 
     cloth = sim.Cloth(t, x, np.array([], dtype = float), False)
 
-    cloth_attrib = fabric_getter(name)
+    cloth_attrib = sim.ClothAttrib()
+
+    fabric_setter(name,cloth_attrib)
+
     cloth.set_attrib(cloth_attrib)
 
     cloth.attach(world)
 
-    n=len(x)
+    n = len(x)
 
     groups = np.full(n, collision_group)
     masks = np.full(n, collision_mask)
@@ -27,30 +32,6 @@ def _add_cloth_to_sim(x, t, collision_mask, collision_group, name, world, sim_cl
 
     sim_clothes.append(cloth)
     cloth_names.append(name)
-
-def _add_rigid_body_to_sim(rigid_i, x, t, xmat, xpos, collision_mask, collision_group, world, rigid_bodies):
-
-    transform = _mj_data_helper. to_sim_transfrom(xmat,xpos)
-
-    mesh = sim. Mesh(t, x)
-
-    rigid_body = sim. RigidBody( mesh, transform )
-
-    rigid_body_attrib = sim. RigidBodyAttrib()
-    rigid_body_attrib. dynamic_friction = 0.03
-    rigid_body_attrib. static_friction = 0.03
-    rigid_body_attrib. mass = 3e-2
-
-    rigid_body. set_attrib(rigid_body_attrib)
-
-    rigid_body. set_pin(True)
-
-    rigid_body. set_collision_group( collision_group )
-    rigid_body. set_collision_mask( collision_mask )
-
-    rigid_body. attach( world )
-
-    rigid_bodies. append( rigid_body )
 
 def _set_rigid_body_to_sim(i,  xmat, xpos, rigid_bodies, last_rigid_body_transform):
     rigid_bodies[i].move(last_rigid_body_transform[i],_mj_data_helper.to_sim_transfrom(xmat,xpos))
@@ -67,7 +48,8 @@ def _log_callback(file_name: str, func_name: str, line: int, level: sim.LogLevel
         print("[debug]: ", message)
 
 def log_in_simulation(**kwargs):
-    name=''
+
+    name = ''
 
     if not sim.is_login():
         login_file = None
@@ -120,18 +102,66 @@ def load_data(xml_path):
 
     return m, d
 
-def add_cloth_to_sim(m, d, world, cloth_property_getter):
+
+def add_cloth_to_sim(m, d, world, cloth_property_setter):
     sim_clothes = []
     cloth_names = []
-    add_cloth = lambda x, t, collision_mask, collision_group, name :_add_cloth_to_sim(x, t, collision_mask, collision_group, name, world, sim_clothes, cloth_names, cloth_property_getter)
+    add_cloth = lambda x, t, collision_mask, collision_group, name :_add_cloth_to_sim(x, t, collision_mask, collision_group, name, world, sim_clothes, cloth_names, cloth_property_setter)
     _mj_data_helper.for_each_cloth(m, d, add_cloth  )
     return sim_clothes,cloth_names
 
 
-def add_rigid_body_to_sim(m, d, world):
+def add_rigid_body_to_sim(m, d, world, property_fn):
+
     objects = []
-    add_rigid_body = lambda rigid_i, x, t, geo_mat, geo_pos, collision_mask, collision_group : _add_rigid_body_to_sim( rigid_i, x, t, geo_mat, geo_pos, collision_mask, collision_group, world, objects )
-    _mj_data_helper.for_each_rigid_meshes(m, d, add_rigid_body )
+
+    xmat = _mj_data_helper._mj_get_attr(d, "geom_xmat")
+    xpos = _mj_data_helper._mj_get_attr(d, "geom_xpos")
+
+    contype = _mj_data_helper._mj_get_attr(m, "geom_contype")
+    conaffinity =  _mj_data_helper._mj_get_attr(m,"geom_conaffinity")
+
+    ## friciton won't consistent with sim
+    #friction = _mj_data_helper._mj_get_attr(m,"geom_friction")
+
+    def __add_rigid_body( slot_i, geom_id, mesh_id, rb_id ):
+
+        t = _mj_data_helper. _get_mesh_tri(mesh_id, m)
+        x = _mj_data_helper. _get_mesh_pos(mesh_id, m)
+
+        geo_pos = xpos[geom_id]
+        geo_mat = xmat[geom_id]
+
+        transform = _mj_data_helper. to_sim_transfrom(geo_mat,geo_pos)
+
+        mesh = sim. Mesh(t, x)
+
+        rigid_body = sim. RigidBody( mesh, transform )
+
+        geom_name = mujoco. mj_id2name(m, mujoco.mjtObj.mjOBJ_GEOM, geom_id)
+
+        rigid_body_attrib = sim. RigidBodyAttrib()
+
+        property_fn(geom_name, rigid_body_attrib)
+
+        ### friciton won't consistent with sim
+        ##rigid_body_attrib. dynamic_friction = friction[geom_id][0]
+        ##rigid_body_attrib. static_friction = friction[geom_id][0]
+
+
+        rigid_body. set_attrib(rigid_body_attrib)
+
+        rigid_body. set_pin(True)
+
+        rigid_body. set_collision_group( contype[geom_id] )
+        rigid_body. set_collision_mask( conaffinity[geom_id] )
+
+        rigid_body. attach( world )
+
+        objects. append( rigid_body )
+
+    _mj_data_helper.for_each_geom_mesh(m, d, __add_rigid_body )
+
     return  objects
 
 def set_cloth_pos_to_mujoco(m, d, sim_clothes, cloth_names):
@@ -143,6 +173,7 @@ def set_cloth_pos_to_mujoco(m, d, sim_clothes, cloth_names):
 def set_rigid_body_pos_to_sim(m, d,  rigid_bodies):
     last_rigid_body_transform = [rb.get_transform() for rb in rigid_bodies]
     _mj_data_helper.for_each_rigid_meshes(m, d, lambda rigid_i, x, t, geo_mat, geo_pos , collision_mask, collision_group : _set_rigid_body_to_sim(rigid_i,  geo_mat, geo_pos, rigid_bodies, last_rigid_body_transform))
+
 
 def set_rigid_body_pos_with_velocity(rigid_bodies, last_transform, curr_transform ):
     for ri in range(len(rigid_bodies)):
@@ -185,20 +216,7 @@ def get_rigid_body_transform( m: mujoco.MjModel, d: mujoco.MjData):
     return ret_geo_mat,ret_geo_pos
 
 
-def get_cloth_collision_force_from_rigidbody( m: mujoco.MjModel, d: mujoco.MjData):
-    #TODO:
-    pass
-
 def get_collision_force_from_piece(rigidbody):
     return rigidbody.get_collision_force_piece()
 
 
-def get_geom_parent( m: mujoco.MjModel, d: mujoco.MjData ):
-    rigid_body_id=[]
-
-    def collect_rg_id(slot_i,geom_id, mesh_id, rb_id):
-        rigid_body_id.append(rb_id)
-
-    _mj_data_helper.for_each_geom_mesh(m,d,collect_rg_id)
-
-    return  rigid_body_id
