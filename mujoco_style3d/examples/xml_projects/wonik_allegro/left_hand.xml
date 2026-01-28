@@ -173,11 +173,17 @@
       </body>
     </body>
 
-    <body name="table_body" >
-        <geom  name="table_mesh" type="mesh" mesh="table" friction="0.007"/>
+<!-- 
+    <body name="table_box" >
+         <geom  name="table_box" type="box" size="0.5 0.5 0.05" pos="0.5 0.5 0.05" friction="0.007"/>  
+    </body>
+-->
+
+    <body name="table_mesh" >
+        <geom  name="table_mesh" type="mesh" mesh="table" friction="0.007"/> 
     </body>
 
-    <flexcomp name="cloth" type="mesh" pos="-0.3 -1.5 -0.05" quat="1 0 0 0" radius=".0005" dim="2" rgba="1 0.6 0.8 1" custom="true" file="50k_plane.obj">
+    <flexcomp name="cloth" type="mesh" pos="-0.3 -1.5 -0.04" quat="1 0 0 0" radius=".0005" dim="2" rgba="1 0.6 0.8 1" custom="true" file="50k_plane.obj">
     </flexcomp>
 
   </worldbody>

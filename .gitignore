@@ -1,4 +1,5 @@
 simulation_login.json
+mujoco_style3d/examples/xml_projects/test
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

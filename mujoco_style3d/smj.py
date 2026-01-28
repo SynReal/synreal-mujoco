@@ -23,7 +23,7 @@ class s3d_mj_mapper:
 def _get_geom_parent( m: mujoco.MjModel, d: mujoco.MjData ):
     rigid_body_id=[]
 
-    def collect_rg_id(slot_i,geom_id, mesh_id, rb_id):
+    def collect_rg_id(slot_i,geom_id, mesh_id, rb_id,geom_type):
         rigid_body_id.append(rb_id)
 
     _mj_data_helper.for_each_geom_mesh(m,d,collect_rg_id)
@@ -37,8 +37,6 @@ def _get_geom_parent( m: mujoco.MjModel, d: mujoco.MjData ):
 #   cloth_property_fn(cloth_name, cloth_attrib)
 def smj_load_data(xml_path, **kwargs):
 
-    #rigid_body_property_getter = lambda name : cloth_property.get_rigid_body_property_default(), cloth_property_getter = lambda nama : cloth_property.get_cloth_property_default()):
-
     if 'rb_property_fn' in kwargs:
         rb_property_fn = kwargs['rb_property_fn']
     else:
@@ -51,18 +49,18 @@ def smj_load_data(xml_path, **kwargs):
 
     script_dir = Path(__file__).parent.resolve()
 
-    s3d_mj.log_in_simulation( login_file=f'{script_dir}/../simulation_login.json')  # this line is optional, but a login prompt will pop up latter
+    s3d_mj. log_in_simulation( login_file=f'{script_dir}/../simulation_login.json')  # this line is optional, but a login prompt will pop up latter
 
-    m,d = s3d_mj.load_data(xml_path)
+    m, d = s3d_mj. load_data(xml_path)
 
     world = s3d_mj. get_a_sim_world(m)
 
     sim_cloth, cloth_names = s3d_mj. add_cloth_to_sim(m, d, world, cloth_property_fn)
     rigid_bodies = s3d_mj. add_rigid_body_to_sim(m, d, world , rb_property_fn)
 
-    rigid_body_id = _get_geom_parent(m, d,)
+    rigid_body_id = _get_geom_parent(m, d)
 
-    collision_force=[]
+    collision_force = []
 
     mp = s3d_mj_mapper (
         world,

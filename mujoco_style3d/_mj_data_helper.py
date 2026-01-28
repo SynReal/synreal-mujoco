@@ -137,19 +137,19 @@ def for_each_geom_mesh(m: mujoco.MjModel,d: mujoco.MjData, fn):
 
         mesh_id = mesh_ids[i]
 
-        if mesh_id < 0: # refer to a exsited mesh
-            continue
+        #if mesh_id < 0: # refer to a exsited mesh
+        #    continue
 
-        if geom_type[i] != mujoco.mjtGeom.mjGEOM_MESH:   # geom type is mesh type
-            continue
+        #if geom_type[i] != mujoco.mjtGeom.mjGEOM_MESH:   # geom type is mesh type
+        #    continue
 
-        if  mesh_graph_begin[mesh_id] < 0: # is a collision mesh
-            continue
+        #if  mesh_graph_begin[mesh_id] < 0: # is a collision mesh
+        #    continue
 
         rb_id = rigidbody_id[i]
         geom_id = i
-        fn(slot_i,geom_id, mesh_id, rb_id)
-        slot_i+=1
+        fn( slot_i,geom_id, mesh_id, rb_id,geom_type[i] )
+        slot_i += 1
 
 
 
@@ -158,17 +158,20 @@ def for_each_rigid_meshes(m: mujoco.MjModel,d: mujoco.MjData, fn):
     contype = _mj_get_attr(m, "geom_contype")
     conaffinity =  _mj_get_attr(m,"geom_conaffinity")
 
-    def rigid_mesh_fn(slot_i, geom_id, mesh_id, rb_id):
-        t = _get_mesh_tri(mesh_id, m)
-        x = _get_mesh_pos(mesh_id, m)
+    def rigid_mesh_fn(slot_i, geom_id, mesh_id, rb_id, geom_type):
 
-        xmat =_mj_get_attr(d, "geom_xmat" )
-        xpos =_mj_get_attr(d, "geom_xpos" )
+        if geom_type == mujoco.mjtGeom.mjGEOM_MESH:
 
-        geo_pos = xpos[geom_id]
-        geo_mat = xmat[geom_id]
+            t = _get_mesh_tri(mesh_id, m)
+            x = _get_mesh_pos(mesh_id, m)
 
-        fn( rigid_i = slot_i, x=x, t=t, geo_mat=geo_mat, geo_pos=geo_pos, collision_mask = conaffinity[geom_id], collision_group = contype[geom_id])
+            xmat =_mj_get_attr(d, "geom_xmat" )
+            xpos =_mj_get_attr(d, "geom_xpos" )
+
+            geo_pos = xpos[geom_id]
+            geo_mat = xmat[geom_id]
+
+            fn( rigid_i = slot_i, x=x, t=t, geo_mat=geo_mat, geo_pos=geo_pos, collision_mask = conaffinity[geom_id], collision_group = contype[geom_id])
 
     for_each_geom_mesh(m,d,rigid_mesh_fn)
 

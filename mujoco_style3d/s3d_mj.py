@@ -115,16 +115,15 @@ def add_rigid_body_to_sim(m, d, world, property_fn):
 
     objects = []
 
-    xmat = _mj_data_helper._mj_get_attr(d, "geom_xmat")
-    xpos = _mj_data_helper._mj_get_attr(d, "geom_xpos")
+    xmat = _mj_data_helper. _mj_get_attr(d, "geom_xmat")
+    xpos = _mj_data_helper. _mj_get_attr(d, "geom_xpos")
 
     contype = _mj_data_helper._mj_get_attr(m, "geom_contype")
     conaffinity =  _mj_data_helper._mj_get_attr(m,"geom_conaffinity")
 
-    ## friciton won't consistent with sim
-    #friction = _mj_data_helper._mj_get_attr(m,"geom_friction")
+    geo_size = _mj_data_helper._mj_get_attr(m,"geom_size")
 
-    def __add_rigid_body( slot_i, geom_id, mesh_id, rb_id ):
+    def __add_rigid_body( slot_i, geom_id, mesh_id, rb_id , geom_type):
 
         t = _mj_data_helper. _get_mesh_tri(mesh_id, m)
         x = _mj_data_helper. _get_mesh_pos(mesh_id, m)
@@ -132,27 +131,34 @@ def add_rigid_body_to_sim(m, d, world, property_fn):
         geo_pos = xpos[geom_id]
         geo_mat = xmat[geom_id]
 
-        transform = _mj_data_helper. to_sim_transfrom(geo_mat,geo_pos)
+        transform = _mj_data_helper. to_sim_transfrom(geo_mat, geo_pos)
 
         mesh = sim. Mesh(t, x)
 
-        rigid_body = sim. RigidBody( mesh, transform )
+
+        if geom_type == mujoco.mjtGeom.mjGEOM_MESH:
+            rigid_body = sim.RigidBody(mesh, transform)
+        elif geom_type == mujoco.mjtGeom.mjGEOM_SPHERE:
+            sphereSize = sim.SphereSize()
+            rigid_body = sim.RigidBody(sphereSize, transform)
+        elif geom_type == mujoco.mjtGeom.mjGEOM_BOX:
+            s = geo_size[geom_id]
+            boxSize =  sim.BoxSize()
+            boxSize.length_x = 2 * s[0]
+            boxSize.length_y = 2 * s[1]
+            boxSize.length_z = 2 * s[2]
+            rigid_body = sim.RigidBody(boxSize, transform)
+        elif geom_type == mujoco.mjtGeom.mjGEOM_CYLINDER:
+            cylinderSize =  sim.CylinderSize()
+            rigid_body = sim.RigidBody(cylinderSize, transform)
 
         geom_name = mujoco. mj_id2name(m, mujoco.mjtObj.mjOBJ_GEOM, geom_id)
 
         rigid_body_attrib = sim. RigidBodyAttrib()
-
         property_fn(geom_name, rigid_body_attrib)
-
-        ### friciton won't consistent with sim
-        ##rigid_body_attrib. dynamic_friction = friction[geom_id][0]
-        ##rigid_body_attrib. static_friction = friction[geom_id][0]
-
-
         rigid_body. set_attrib(rigid_body_attrib)
 
         rigid_body. set_pin(True)
-
         rigid_body. set_collision_group( contype[geom_id] )
         rigid_body. set_collision_mask( conaffinity[geom_id] )
 

@@ -5,8 +5,9 @@ import numpy as np
 
 import mujoco_style3d.smj as smj
 
-def rigid_body_property_fn(rb_name,attrib):
-    if  rb_name == 'table_mesh':
+def rigid_body_property_fn(geo_name,attrib):
+    if  geo_name == 'table_box' or geo_name == 'table_mesh':
+        print(f' set {geo_name} rigid body property')
         attrib. dynamic_friction = 0.007
         attrib. static_friction = 0.007
         attrib. mass = 3e-2
@@ -15,7 +16,6 @@ def rigid_body_property_fn(rb_name,attrib):
         attrib. static_friction = 0.03
         attrib. mass = 3e-2
 
-m , d, mp = smj. smj_load_data('xml_projects/wonik_allegro/left_hand.xml', rb_property_fn = rigid_body_property_fn)
 
 def set_finger_target_pos(m,d):
 
@@ -34,7 +34,10 @@ def set_finger_target_pos(m,d):
     smj. set_actuator_target_pos(m, d, 'rfa2', target_angle)
 
 
-with mujoco.viewer. launch_passive(m, d) as viewer:
+#m , d, mp = smj. smj_load_data('xml_projects/test/some_hand/left_hand.xml', rb_property_fn = rigid_body_property_fn)
+m , d, mp = smj. smj_load_data('xml_projects/wonik_allegro/left_hand.xml', rb_property_fn = rigid_body_property_fn)
+
+with mujoco. viewer. launch_passive(m, d) as viewer:
 
     fi = 0
 
@@ -50,16 +53,16 @@ with mujoco.viewer. launch_passive(m, d) as viewer:
 
             smj. set_mocap_pos(m, d,'palm', np. array([ x , 0.5 , z]))
 
-            set_finger_target_pos(m,d)
+            set_finger_target_pos(m, d)
 
             smj. update_rigidbody_cloth_collision_force(m, d, mp)
             smj. apply_collision_force_to_rigidbody(m, d, mp) ## cloth affacts rigid body
 
         smj. smj_rigid_body_step(m, d)
 
-        begin1_t = time. time()
-
         smj. update_rigidbody_to_cloth(m,d,mp)   ## rigid body affacts cloth
+
+        begin1_t = time. time()
 
         smj. smj_cloth_step(mp)
 
@@ -67,7 +70,7 @@ with mujoco.viewer. launch_passive(m, d) as viewer:
 
         duration1 = end1_t - begin1_t
 
-        smj. update_cloth_to_rigid_body(m,d,mp)  ## fetch cloth position back , for mujoco visual, no force apply to rigidbody yet
+        smj. update_cloth_to_rigid_body(m, d, mp)  ## fetch cloth position back , for mujoco visual, no force apply to rigidbody yet
 
         viewer. sync()
 
