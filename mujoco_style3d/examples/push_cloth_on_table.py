@@ -5,6 +5,9 @@ import numpy as np
 
 import mujoco_style3d.smj as smj
 
+import json
+from pathlib import Path
+
 def rigid_body_property_fn(geo_name,attrib):
     if  geo_name == 'table_box' or geo_name == 'table_mesh':
         print(f' set {geo_name} rigid body property')
@@ -17,25 +20,20 @@ def rigid_body_property_fn(geo_name,attrib):
         attrib. mass = 3e-2
 
 
-def set_finger_target_pos(m,d):
 
-    target_angle = 1.0
+mjcf_file = 'xml_projects/test/some_hand/left_hand.xml'
+#mjcf_file = 'xml_projects/wonik_allegro/left_hand.xml'
 
-    # first finger
-    smj. set_actuator_target_pos(m, d, 'ffa1', target_angle)
-    smj. set_actuator_target_pos(m, d, 'ffa2', target_angle)
+mjcf_dir = Path(mjcf_file).parent.resolve()
+trajectory_file = mjcf_dir / 'trajectory_param.json'
 
-    # middle finger
-    smj. set_actuator_target_pos(m, d, 'mfa1', target_angle)
-    smj. set_actuator_target_pos(m, d, 'mfa2', target_angle)
+m , d, mp = smj. smj_load_data(mjcf_file, rb_property_fn = rigid_body_property_fn)
 
-    # ring finger (wu ming zhi)
-    smj. set_actuator_target_pos(m, d, 'rfa1', target_angle)
-    smj. set_actuator_target_pos(m, d, 'rfa2', target_angle)
+with open(trajectory_file,'r') as fin:
+    data=json.load(fin)
 
-
-#m , d, mp = smj. smj_load_data('xml_projects/test/some_hand/left_hand.xml', rb_property_fn = rigid_body_property_fn)
-m , d, mp = smj. smj_load_data('xml_projects/wonik_allegro/left_hand.xml', rb_property_fn = rigid_body_property_fn)
+drop_rate = data['drop_rate']
+hand_z_min = data['hand_z_min']
 
 with mujoco. viewer. launch_passive(m, d) as viewer:
 
@@ -49,11 +47,9 @@ with mujoco. viewer. launch_passive(m, d) as viewer:
 
         if  x < 1.2:
 
-            z = np. clip( 0.3 - 0.001 * float(fi), 0.210 , 1 )
+            z = np. clip( 0.3 - drop_rate * float(fi), hand_z_min , 1 )
 
             smj. set_mocap_pos(m, d,'palm', np. array([ x , 0.5 , z]))
-
-            set_finger_target_pos(m, d)
 
             smj. update_rigidbody_cloth_collision_force(m, d, mp)
             smj. apply_collision_force_to_rigidbody(m, d, mp) ## cloth affacts rigid body

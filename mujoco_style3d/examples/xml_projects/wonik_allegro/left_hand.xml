@@ -39,11 +39,11 @@
         <position ctrlrange="-0.47 0.47"/>
       </default>
       <default class="proximal">
-        <joint range="-0.196 1.61"/>
+        <joint range="-0.196 1.61" ref="-1"/>
         <position ctrlrange="-0.196 1.61"/>
       </default>
       <default class="medial">
-        <joint range="-0.174 1.709"/>
+        <joint range="-0.174 1.709" ref="-1"/>
         <position ctrlrange="-0.174 1.709"/>
       </default>
       <default class="distal">
