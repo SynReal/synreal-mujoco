@@ -21,8 +21,8 @@ def rigid_body_property_fn(geo_name,attrib):
 
 
 
-mjcf_file = 'xml_projects/test/some_hand/left_hand.xml'
-#mjcf_file = 'xml_projects/wonik_allegro/left_hand.xml'
+#mjcf_file = 'xml_projects/test/some_hand/left_hand.xml'
+mjcf_file = 'xml_projects/wonik_allegro/left_hand.xml'
 
 mjcf_dir = Path(mjcf_file).parent.resolve()
 trajectory_file = mjcf_dir / 'trajectory_param.json'
