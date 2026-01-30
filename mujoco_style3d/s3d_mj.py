@@ -151,6 +151,9 @@ def add_rigid_body_to_sim(m, d, world, property_fn):
         elif geom_type == mujoco.mjtGeom.mjGEOM_CYLINDER:
             cylinderSize =  sim.CylinderSize()
             rigid_body = sim.RigidBody(cylinderSize, transform)
+        else:
+            print('unknown geometry type!')
+            return
 
         geom_name = mujoco. mj_id2name(m, mujoco.mjtObj.mjOBJ_GEOM, geom_id)
 
