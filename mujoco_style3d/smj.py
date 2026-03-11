@@ -47,6 +47,12 @@ def smj_load_data(xml_path, **kwargs):
     else:
         cloth_property_fn = lambda name, attrib : cloth_property.set_cloth_property_default(attrib)
 
+
+    if 'rigidbody_with_convex_hull' in kwargs:
+        rigidbody_with_convex_hull = kwargs['rigidbody_with_convex_hull']
+    else:
+        rigidbody_with_convex_hull = False
+
     script_dir = Path(__file__).parent.resolve()
 
     s3d_mj. log_in_simulation( login_file=f'{script_dir}/../simulation_login.json')  # this line is optional, but a login prompt will pop up latter
@@ -56,7 +62,7 @@ def smj_load_data(xml_path, **kwargs):
     world = s3d_mj. get_a_sim_world(m)
 
     sim_cloth, cloth_names = s3d_mj. add_cloth_to_sim(m, d, world, cloth_property_fn)
-    rigid_bodies = s3d_mj. add_rigid_body_to_sim(m, d, world , rb_property_fn)
+    rigid_bodies = s3d_mj. add_rigid_body_to_sim(m, d, world , rb_property_fn, rigidbody_with_convex_hull)
 
     rigid_body_id = _get_geom_parent(m, d)
 
@@ -106,14 +112,25 @@ def apply_collision_force_to_rigidbody(m,d,mp):
 
         rb_force = mp.collision_force[i]
 
+        orientation = d.xmat[l_rb_id]
+        orientation = orientation.reshape(3, 3)
+
+        wrench = np.zeros(6)
         for f, bary in zip(*rb_force):  # force and bary
 
-            orientation = d.xmat[l_rb_id]
-            orientation = orientation.reshape(3, 3)
             r = orientation @ bary
             torque = np.cross(r, f)
+
             # append force and torque to rigid body
-            d.xfrc_applied[l_rb_id] += [f[0], f[1], f[2], torque[0], torque[1], torque[2]]
+            wrench += [f[0], f[1], f[2], torque[0], torque[1], torque[2]]
+
+        ### maybe clamp wrench
+        #wrench_norm = np.linalg.norm(wrench)
+        #wrench_threshold = 1e3
+        #if wrench_norm > wrench_threshold:
+        #    wrench *= wrench_threshold/wrench_norm
+
+        d.xfrc_applied[l_rb_id] += wrench
 
 ## step
 def smj_cloth_step(mp):
@@ -121,8 +138,6 @@ def smj_cloth_step(mp):
 
 def smj_rigid_body_step(m,d):
     mujoco.mj_step(m, d)
-
-
 
 ## control
 def  set_mocap_pos( m: mujoco.MjModel ,d: mujoco.MjData, body_name, pos):

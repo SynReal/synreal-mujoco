@@ -1,4 +1,5 @@
 import os.path
+from copy import deepcopy
 
 import style3dsim as sim
 import mujoco
@@ -6,7 +7,6 @@ import numpy as np
 import json
 
 import mujoco_style3d._mj_data_helper as _mj_data_helper
-
 
 
 def _add_cloth_to_sim(x, t, collision_mask, collision_group, name, world, sim_clothes, cloth_names, fabric_setter):
@@ -111,7 +111,50 @@ def add_cloth_to_sim(m, d, world, cloth_property_setter):
     return sim_clothes,cloth_names
 
 
-def add_rigid_body_to_sim(m, d, world, property_fn):
+
+def extract_convex_hull(model, mesh_id):
+    """
+    Extract the convex hull collision mesh from the model's mesh graph.
+    """
+    # Access the mesh graph data from the model
+    adr = model.mesh_graphadr[mesh_id]
+
+    if adr < 0:
+        raise ValueError("No convex hull data found for the mesh.")
+
+    graph = model.mesh_graph[adr:]
+
+    numvert = graph[0]  # Number of vertices
+    numface = graph[1]  # Number of faces
+
+    # Extract the global vertex indices and faces
+    vert_begin = 2 + numvert                    # see mujoco doc
+    face_begin = 2 + 3 * numvert + 3 * numface  # see mujoco doc
+    vert_globalid = graph[ vert_begin: vert_begin + numvert]
+    face_localid = deepcopy(graph[face_begin: face_begin + 3 * numface])
+    v_map={}
+    for  vi, v in enumerate(vert_globalid):
+        v_map[v] = vi
+
+    # Extract the original mesh vertices from the model
+    vadr = model. mesh_vertadr[mesh_id]
+    verts_all = model. mesh_vert.reshape(-1, 3)[  vadr:]
+
+    # Get the convex hull vertices using the global indices
+    verts = verts_all[vert_globalid]
+
+    for fv in range(len(face_localid)):
+        v = face_localid[fv]
+        vi = v_map[v]
+        face_localid[fv] = vi
+
+    # Reshape faces and map to the correct vertex indices
+    faces = np.array(face_localid).reshape(-1, 3)
+
+    return verts, faces
+
+
+def add_rigid_body_to_sim(m, d, world, property_fn, rigidbody_with_convex_hull):
 
     objects = []
 
@@ -128,13 +171,16 @@ def add_rigid_body_to_sim(m, d, world, property_fn):
         t = _mj_data_helper. _get_mesh_tri(mesh_id, m)
         x = _mj_data_helper. _get_mesh_pos(mesh_id, m)
 
+        if rigidbody_with_convex_hull:
+            if m. mesh_graphadr[mesh_id] >= 0:
+                x, t = extract_convex_hull(m, mesh_id)
+
         geo_pos = xpos[geom_id]
         geo_mat = xmat[geom_id]
 
         transform = _mj_data_helper. to_sim_transfrom(geo_mat, geo_pos)
 
         mesh = sim. Mesh(t, x)
-
 
         if geom_type == mujoco.mjtGeom.mjGEOM_MESH:
             rigid_body = sim.RigidBody(mesh, transform)

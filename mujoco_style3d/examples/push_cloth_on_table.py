@@ -21,16 +21,16 @@ def rigid_body_property_fn(geo_name,attrib):
 
 
 
-#mjcf_file = 'xml_projects/test/some_hand/left_hand.xml'
+#mjcf_file = 'xml_projects/zjrx_lefthand/left_hand.xml'
 mjcf_file = 'xml_projects/wonik_allegro/left_hand.xml'
 
-mjcf_dir = Path(mjcf_file).parent.resolve()
+mjcf_dir = Path(mjcf_file). parent. resolve()
 trajectory_file = mjcf_dir / 'trajectory_param.json'
 
-m , d, mp = smj. smj_load_data(mjcf_file, rb_property_fn = rigid_body_property_fn)
+m, d, mp = smj. smj_load_data(mjcf_file, rb_property_fn = rigid_body_property_fn , rigidbody_with_convex_hull = True)
 
-with open(trajectory_file,'r') as fin:
-    data=json.load(fin)
+with open(trajectory_file, 'r') as fin:
+    data = json.load(fin)
 
 drop_rate = data['drop_rate']
 hand_z_min = data['hand_z_min']
