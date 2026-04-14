@@ -1,10 +1,10 @@
-# mujoco_style3d
-mujoco-style3d coupling solver
+# synreal-mujoco
+synreal-mujoco coupling solver
 
 # install guide
 1. switch to your python virtual env
 2. pip install style3dsim*.whl
-3. clone style3d forked mujoco repo(https://github.com/Style3D/mujoco) and switch to branch style3d
+3. clone style3d forked mujoco repo(https://github.com/SynReal/mujoco) and switch to branch style3d
 4. run install_py_package.py in mujoco/python folder to generate mujoco python wheel
 5. cd dist && pip install mujoco*.whl
 6. cd mujoco_style3d && pip install -e .
