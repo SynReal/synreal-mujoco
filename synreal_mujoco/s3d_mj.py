@@ -6,7 +6,7 @@ import mujoco
 import numpy as np
 import json
 
-import mujoco_style3d._mj_data_helper as _mj_data_helper
+import synreal_mujoco._mj_data_helper as _mj_data_helper
 
 
 def _add_cloth_to_sim(x, t, collision_mask, collision_group, name, world, sim_clothes, cloth_names, fabric_setter):
@@ -15,7 +15,7 @@ def _add_cloth_to_sim(x, t, collision_mask, collision_group, name, world, sim_cl
 
     cloth_attrib = sim.ClothAttrib()
 
-    fabric_setter(name,cloth_attrib)
+    fabric_setter(name, cloth_attrib)
 
     cloth.set_attrib(cloth_attrib)
 
@@ -86,8 +86,11 @@ def get_a_sim_world(m):
     world_attrib.time_step = m.opt.timestep
     world_attrib.enable_rigid_self_collision = False
     world_attrib.enable_collision_force_map_rigidbody_piece = True
-    world_attrib.enable_plastic_bending = True
-    world_attrib.enable_volume_conserve = True
+    if hasattr(world_attrib, "enable_plastic_bending"):
+        world_attrib.enable_plastic_bending = True
+    if hasattr(world_attrib, "enable_volume_conserve"):
+        world_attrib.enable_volume_conserve = True
+
     world.set_attrib(world_attrib)
 
     print(f'time step {world_attrib.time_step}')
