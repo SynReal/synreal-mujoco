@@ -1,8 +1,8 @@
 
 import mujoco.viewer
 
-import mujoco_style3d.s3d_mjx as s3d_mjx
-import mujoco_style3d.s3d_mj as s3d_mj
+import synreal_mujoco.s3d_mjx as s3d_mjx
+import synreal_mujoco.s3d_mj as s3d_mj
 
 s3d_mj.log_in_simulation(login_file='../../simulation_login.json') # this line is optional, but a login prompt will pop up latter
 

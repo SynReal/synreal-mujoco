@@ -3,7 +3,7 @@ import time
 import mujoco.viewer
 import numpy as np
 
-import mujoco_style3d.smj as smj
+import synreal_mujoco.smj as smj
 
 import json
 from pathlib import Path

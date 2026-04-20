@@ -2,8 +2,8 @@ import time
 
 import mujoco.viewer
 
-import mujoco_style3d.s3d_mj as s3d_mj
-from mujoco_style3d import cloth_property
+import synreal_mujoco.s3d_mj as s3d_mj
+from synreal_mujoco import cloth_property
 
 s3d_mj.log_in_simulation(login_file='../../simulation_login.json') # this line is optional, but a login prompt will pop up latter
 
@@ -12,7 +12,7 @@ m , d = s3d_mj.load_data('xml_projects/piper_secription_with_cloth/piper_descrip
 world = s3d_mj.get_a_sim_world(m)
 
 sim_cloth, cloth_names = s3d_mj.add_cloth_to_sim(m, d, world, lambda nama,attrib : cloth_property.set_cloth_property_default(attrib))
-rigid_bodies = s3d_mj.add_rigid_body_to_sim(m, d, world, lambda name,attrib: cloth_property.set_rigid_body_property_default(attrib))
+rigid_bodies = s3d_mj.add_rigid_body_to_sim(m, d, world, lambda name,attrib: cloth_property.set_rigid_body_property_default(attrib),False)
 
 sync_rate = 1
 

@@ -2,9 +2,9 @@ import time
 
 import mujoco.viewer
 
-import mujoco_style3d.s3d_mj as s3d_mj
-from mujoco_style3d import cloth_property
-from mujoco_style3d import step_skipper
+import synreal_mujoco.s3d_mj as s3d_mj
+from synreal_mujoco import cloth_property
+from synreal_mujoco import step_skipper
 
 s3d_mj.log_in_simulation(login_file='../../simulation_login.json') # this line is optional, but a login prompt will pop up latter
 
