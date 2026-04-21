@@ -105,6 +105,47 @@ def load_data(xml_path):
 
     return m, d
 
+# load tetrahedron mesh from a VTK unstructured grid file (ASCII)
+def load_tetrahedrons(file_path):
+    vertices = []
+    tets = []
+
+    with open(file_path, 'r') as f:
+        lines = [l.rstrip() for l in f]
+
+    i = 0
+    while i < len(lines):
+        parts = lines[i].split()
+        if not parts:
+            i += 1
+            continue
+
+        if parts[0] == 'POINTS':
+            n_points = int(parts[1])
+            i += 1
+            while len(vertices) < n_points:
+                row = lines[i].split()
+                i += 1
+                if not row or row[0].startswith('#'):
+                    continue
+                # a POINTS line can pack multiple xyz triplets
+                for j in range(0, len(row), 3):
+                    vertices.append([float(row[j]), float(row[j+1]), float(row[j+2])])
+
+        elif parts[0] == 'CELLS':
+            n_cells = int(parts[1])
+            i += 1
+            for _ in range(n_cells):
+                row = lines[i].split()
+                n_verts = int(row[0])
+                if n_verts == 4:
+                    tets.append([int(row[1]), int(row[2]), int(row[3]), int(row[4])])
+                i += 1
+
+        else:
+            i += 1
+
+    return np.array(vertices, dtype=float), np.array(tets, dtype=int)
 
 def add_cloth_to_sim(m, d, world, cloth_property_setter):
     sim_clothes = []
