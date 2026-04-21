@@ -51,8 +51,8 @@ with mujoco. viewer. launch_passive(m, d) as viewer:
 
             smj. set_mocap_pos(m, d,'palm', np. array([ x , 0.5 , z]))
 
-            smj. update_rigidbody_cloth_collision_force(m, d, mp)
-            smj. apply_collision_force_to_rigidbody(m, d, mp) ## cloth affacts rigid body
+        smj. update_rigidbody_cloth_collision_force(m, d, mp)
+        smj. apply_collision_force_to_rigidbody(m, d, mp) ## cloth affacts rigid body
 
         smj. smj_rigid_body_step(m, d)
 

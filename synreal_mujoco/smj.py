@@ -1,8 +1,8 @@
 
 import mujoco
-import mujoco_style3d.s3d_mj as s3d_mj
-import mujoco_style3d._mj_data_helper as _mj_data_helper
-import mujoco_style3d.cloth_property as cloth_property
+import synreal_mujoco.s3d_mj as s3d_mj
+import synreal_mujoco._mj_data_helper as _mj_data_helper
+import synreal_mujoco.cloth_property as cloth_property
 import numpy as np
 from pathlib import Path
 
