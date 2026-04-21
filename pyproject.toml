@@ -35,7 +35,4 @@ Homepage = "https://github.com/Style3D/mujoco_style3d"
 Repository = "https://github.com/Style3D/mujoco_style3d"
 
 [tool.setuptools.packages.find]
-include = ["synreal-mujoco*"]
-
-[tool.setuptools.package-dir]
-include=["synreal-mujoco"]
+include = ["synreal_mujoco*"]
