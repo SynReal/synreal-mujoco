@@ -42,6 +42,7 @@ class s3d_scene_builder:
         self.cloth_files = []
         self.cloth_name_prefix = 'cloth'
         self.deformable_body_name_prefix = 'dfm'
+        self._temp_files: List[str] = []
 
     # mujoco mjcf
     def add_mjcf_rigidbodies(self, filename ):
@@ -148,6 +149,7 @@ class s3d_scene_builder:
 
             obj_path = base + f'_{self.deformable_body_name_prefix}_{i}.obj'
             s3d_scene_builder._export_surface_to_obj(pos, faces, obj_path)  # export before offset mutates pos
+            self._temp_files.append(obj_path)
 
             dfm_b.pos += offset
             dfm_b.rest_pos += offset
@@ -162,6 +164,7 @@ class s3d_scene_builder:
         # write .xml
         out_path = base + '_flex' + ext
         tree.write(out_path)
+        self._temp_files.append(out_path)
         self.mjcf_file = out_path
 
 
@@ -173,6 +176,11 @@ class s3d_scene_builder:
         self._add_flex_cloth(scene)
 
         m, d = s3d_mj.load_data(self.mjcf_file)
+
+        import os
+        for path in self._temp_files:
+            os.remove(path)
+        self._temp_files.clear()
 
         scene.world = s3d_mj.get_a_sim_world(m)
 
