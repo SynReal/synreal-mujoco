@@ -106,11 +106,11 @@ def load_data(xml_path):
     return m, d
 
 
-def add_cloth_to_sim(m, d, world, cloth_property_setter):
+def add_cloth_to_sim(m, d, world,name_start_with_will_considered_cloth, cloth_property_setter):
     sim_clothes = []
     cloth_names = []
     add_cloth = lambda x, t, collision_mask, collision_group, name :_add_cloth_to_sim(x, t, collision_mask, collision_group, name, world, sim_clothes, cloth_names, cloth_property_setter)
-    _mj_data_helper.for_each_cloth(m, d, add_cloth  )
+    _mj_data_helper.for_each_cloth(m, d,name_start_with_will_considered_cloth, add_cloth  )
     return sim_clothes,cloth_names
 
 

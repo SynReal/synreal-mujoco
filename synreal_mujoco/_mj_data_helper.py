@@ -103,7 +103,7 @@ def to_sim_transfrom(xmat,xpos):
     transform.rotation = sim.Quat(mat)
     return  transform
 
-def for_each_cloth(m: mujoco.MjModel, d: mujoco.MjData, fn ):
+def for_each_cloth(m: mujoco.MjModel, d: mujoco.MjData, name_start_with_will_considered_cloth, fn ):
     vert_num = _get_flex_vert_num_buffer(m)
 
     num_flex = getattr(m, "nflex", 0)
@@ -114,13 +114,17 @@ def for_each_cloth(m: mujoco.MjModel, d: mujoco.MjData, fn ):
     cloth_num = len(vert_num)
     for i in range(cloth_num):
 
+        name = mujoco.mj_id2name(m, mujoco.mjtObj.mjOBJ_FLEX, i)
+
+        if not name.startswith(name_start_with_will_considered_cloth):
+            continue
+
         x = _get_flex_pos(i, m, d)
         t = _get_flex_tri(i, m)
 
         contype = _get_flex_contype(i,m)
         conaffinity = _get_flex_conaffinity(i,m)
 
-        name = mujoco.mj_id2name(m, mujoco.mjtObj.mjOBJ_FLEX, i)
 
         fn( x=x, t=t, name = name, collision_mask = conaffinity, collision_group = contype )
 

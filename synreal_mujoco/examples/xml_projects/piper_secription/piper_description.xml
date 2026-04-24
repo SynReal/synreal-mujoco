@@ -64,6 +64,10 @@
             </body>
         </body>
 
+        <!--
+        <flexcomp name="cloth" type="mesh" pos="-0.8 -2.0 0.2" quat="1 0 0 0" radius=".0005" dim="2" custom="true" file="50k_plane.obj">
+        </flexcomp>
+        -->
 
     </worldbody>
     <actuator>
