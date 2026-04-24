@@ -10,17 +10,18 @@ from synreal_mujoco import cloth_property
 
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from dataclasses import dataclass, field
 
 @dataclass
 class s3d_scene:
     world: sim.World = None
-    deformable_bodies: List[ sim.DeformableBody] = None
-    deformable_body_names : List[str] = None
+    deformable_bodies: List[ sim.DeformableBody] = field(default_factory=list)
+    deformable_body_names : List[str] = field(default_factory=list)
 
-    rigid_bodies: List[ sim.RigidBody] = None
+    rigid_bodies: List[ sim.RigidBody] = field(default_factory=list)
 
-    sim_cloth: List[sim.Cloth] = None
-    cloth_names: List[str] = None
+    sim_cloth: List[sim.Cloth] = field(default_factory=list)
+    cloth_names: List[str] = field(default_factory=list)
 
 
 
@@ -110,8 +111,6 @@ class s3d_scene_builder:
         elem.tail = '\n\n    '    # newline between </flexcomp> and </worldbody>
 
     def _add_flex_cloth(self,s:s3d_scene):
-        if not self.cloth_files:
-            return
         import os
         tree = ET.parse(self.mjcf_file)
 
@@ -147,14 +146,13 @@ class s3d_scene_builder:
 
                 dfm_b.collision_faces = faces
 
-            # fix this
+            obj_path = base + f'_{self.deformable_body_name_prefix}_{i}.obj'
+            s3d_scene_builder._export_surface_to_obj(pos, faces, obj_path)  # export before offset mutates pos
+
             dfm_b.pos += offset
             dfm_b.rest_pos += offset
 
             self.deformable_bodies_ready.append(dfm_b)
-
-            obj_path = base + f'_{self.deformable_body_name_prefix}_{i}.obj'
-            s3d_scene_builder._export_surface_to_obj(pos, faces, obj_path)
 
             name = self.deformable_body_name_prefix +'_' + str(i)
             s3d_scene_builder.add_flexcomp_to_worldbody(

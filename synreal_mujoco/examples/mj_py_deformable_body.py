@@ -8,9 +8,9 @@ s3d_mj.log_in_simulation(login_file='../../simulation_login.json') # this line i
 
 s3d_scene_builder = s3d_scene.s3d_scene_builder()
 s3d_scene_builder.add_mjcf_rigidbodies('xml_projects/piper_secription/piper_description.xml')
-s3d_scene_builder.add_cloth_by_file('50k_plane.obj')
-s3d_scene_builder.add_deformable_body_by_file_with_boundary_collision_faces('xml_projects/piper_secription/tets.vtk')
-#s3d_scene_builder.add_deformable_body_by_file_with_boundary_collision_faces('tets.vtk')
+#s3d_scene_builder.add_cloth_by_file('50k_plane.obj')
+#s3d_scene_builder.add_deformable_body_by_file_with_boundary_collision_faces('xml_projects/piper_secription/tets.vtk')
+s3d_scene_builder.add_deformable_body_by_file_with_boundary_collision_faces('xml_projects/piper_secription/tets1.vtk')
 
 m,d,s = s3d_scene_builder.build()
 
