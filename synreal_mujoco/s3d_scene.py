@@ -32,6 +32,7 @@ class deformable_body_builder:
         self.rest_pos = rest_pos
         self.tets = tets
         self.collision_faces = collision_faces
+        self.attrib = None
 
 
 class s3d_scene_builder:
@@ -57,7 +58,11 @@ class s3d_scene_builder:
         self.deformable_bodies.append(deformable_body_builder(filename,[],[],[],[]))
 
     def add_deformable_body_by_file_with_boundary_collision_faces(self, filename ):
-        self.deformable_bodies.append(deformable_body_builder(filename,[],[],[],[]))
+        dfm_builder = deformable_body_builder(filename,[],[],[],[])
+        dfm_attrib = sim.DeformableBodyAttrib()
+        dfm_builder.attrib = dfm_attrib
+        self.deformable_bodies.append(dfm_builder)
+        return dfm_attrib
 
     def add_deformable_body(self, pos, rest_pos,tets, collision_faces):
         self.deformable_bodies.append(deformable_body_builder('', pos, rest_pos, tets, collision_faces))
@@ -76,6 +81,7 @@ class s3d_scene_builder:
         scene.deformable_bodies = []
         for dfm in self.deformable_bodies_ready:
             obj = sim.DeformableBody(dfm.pos , dfm.collision_faces, dfm.tets, dfm.rest_pos)
+            obj.set_attrib(dfm.attrib)
             scene.deformable_bodies.append(obj)
             obj.attach(scene.world)
 
