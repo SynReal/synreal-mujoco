@@ -38,6 +38,7 @@ class _ClothAsRigidBody:
         self.cloth.set_attrib(cloth_attrib)
         
         self.num_verts = x.shape[0]
+        self.transform = transform
         self.ver_ind = np.arange(self.num_verts)
     
     def set_attrib(self, attrib: sim.RigidBodyAttrib):
@@ -59,6 +60,9 @@ class _ClothAsRigidBody:
     def attach(self, world: sim.World):
         self.cloth.attach(world)
         
+    def get_transform(self) -> sim.Transform:
+        return self.transform
+    
     
 
 def _add_cloth_to_sim(x, t, collision_mask, collision_group, name, world, sim_clothes, cloth_names, fabric_getter):
