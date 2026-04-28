@@ -4,8 +4,62 @@ import style3dsim as sim
 import mujoco
 import numpy as np
 import json
-
+from mujoco_style3d.cloth_property import get_cloth_property_s3d_default
 import mujoco_style3d._mj_data_helper as _mj_data_helper
+
+
+class _ClothAsRigidBody:
+    @staticmethod
+    def _apply_transform(x: np.ndarray, transform: sim.Transform) -> np.ndarray:
+        """Apply a sim.Transform (rotation Quat xyzw + translation Vec3f) to (n,3) positions."""
+        q = transform.rotation
+        tr = transform.translation
+        qx, qy, qz, qw = q.x, q.y, q.z, q.w
+        R = np.array([
+            [1 - 2*(qy**2 + qz**2),  2*(qx*qy - qz*qw),  2*(qx*qz + qy*qw)],
+            [    2*(qx*qy + qz*qw),  1 - 2*(qx**2 + qz**2),  2*(qy*qz - qx*qw)],
+            [    2*(qx*qz - qy*qw),      2*(qy*qz + qx*qw),  1 - 2*(qx**2 + qy**2)],
+        ], dtype=float)
+        return x @ R.T + np.array([tr.x, tr.y, tr.z], dtype=float)
+
+    def __init__(self, mesh: sim.Mesh, transform: sim.Transform):
+        self.transform = transform
+        self.mesh = mesh
+        
+        x = mesh.get_positions()
+        t = mesh.get_triangles()
+        # apply transform: rotate then translate
+        x = self._apply_transform(x, transform)
+        
+        cloth_attrib = get_cloth_property_s3d_default()
+        cloth_attrib.frozen = True
+        
+        self.cloth = sim.Cloth(t, x, np.array([], dtype = float), False)
+        self.cloth.set_attrib(cloth_attrib)
+        
+        self.num_verts = x.shape[0]
+        self.ver_ind = np.arange(self.num_verts)
+    
+    def set_attrib(self, attrib: sim.RigidBodyAttrib):
+        pass
+    
+    def set_pin(self, is_pin: bool):
+        pass
+    
+    def set_collision_group_mask(self, collision_group: int, collision_mask: int):
+        groups = np.full(self.num_verts, collision_group)
+        masks = np.full(self.num_verts, collision_mask)
+        self.cloth.set_collision_group_masks(groups, masks, self.ver_ind)
+    
+    def move(self, last_transform: sim.Transform, curr_transform: sim.Transform):
+        x_local = self.mesh.get_positions()
+        x_new = self._apply_transform(x_local, curr_transform)
+        self.cloth.set_positions(x_new, self.num_verts)
+    
+    def attach(self, world: sim.World):
+        self.cloth.attach(world)
+        
+    
 
 def _add_cloth_to_sim(x, t, collision_mask, collision_group, name, world, sim_clothes, cloth_names, fabric_getter):
 
@@ -29,12 +83,12 @@ def _add_cloth_to_sim(x, t, collision_mask, collision_group, name, world, sim_cl
     cloth_names.append(name)
 
 def _add_rigid_body_to_sim(rigid_i, x, t, xmat, xpos, collision_mask, collision_group, world, rigid_bodies):
-
     transform = _mj_data_helper. to_sim_transfrom(xmat,xpos)
 
     mesh = sim. Mesh(t, x)
-
-    rigid_body = sim. RigidBody( mesh, transform )
+    
+    rigid_body = _ClothAsRigidBody(mesh, transform)
+    #rigid_body = sim. RigidBody( mesh, transform )
 
     rigid_body_attrib = sim. RigidBodyAttrib()
     rigid_body_attrib. dynamic_friction = 0.03
@@ -45,8 +99,9 @@ def _add_rigid_body_to_sim(rigid_i, x, t, xmat, xpos, collision_mask, collision_
 
     rigid_body. set_pin(True)
 
-    rigid_body. set_collision_group( collision_group )
-    rigid_body. set_collision_mask( collision_mask )
+    rigid_body. set_collision_group_mask( collision_group, collision_mask )
+    #rigid_body. set_collision_group( collision_group )
+    #rigid_body. set_collision_mask( collision_mask )
 
     rigid_body. attach( world )
 
@@ -80,8 +135,8 @@ def log_in_simulation(**kwargs):
                 name = login['name']
                 pass_word = login['pass_word']
         else:
-            name = input('Enter your name : ')
-            pass_word = input('Enter your password : ')
+            name = "simsdk003"# input('Enter your name : ')
+            pass_word = "xSXiaCMd" #input('Enter your password : ')
 
         sim.login(name, pass_word, True, None)
 
