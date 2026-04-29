@@ -7,7 +7,7 @@ import numpy as np
 import json
 
 import synreal_mujoco._mj_data_helper as _mj_data_helper
-
+from synreal_mujoco import cloth_property
 
 def _add_cloth_to_sim(x, t, collision_mask, collision_group, name, world, sim_clothes, cloth_names, fabric_setter):
 
@@ -157,7 +157,11 @@ def extract_convex_hull(model, mesh_id):
     return verts, faces
 
 
-def add_rigid_body_to_sim(m, d, world, property_fn, rigidbody_with_convex_hull):
+def add_rigid_body_to_sim(m, d, world, property_fn=None, rigidbody_with_convex_hull=False):
+
+    if property_fn is None:
+        def property_fn(name, attrib):
+            cloth_property.set_rigid_body_property_default(attrib)
 
     objects = []
 
@@ -169,7 +173,7 @@ def add_rigid_body_to_sim(m, d, world, property_fn, rigidbody_with_convex_hull):
 
     geo_size = _mj_data_helper._mj_get_attr(m,"geom_size")
 
-    def __add_rigid_body( slot_i, geom_id, mesh_id, rb_id , geom_type):
+    def __add_rigid_body(slot_i, geom_id, mesh_id, rb_id , geom_type):
 
         t = _mj_data_helper. _get_mesh_tri(mesh_id, m)
         x = _mj_data_helper. _get_mesh_pos(mesh_id, m)
@@ -230,7 +234,10 @@ def set_cloth_pos_to_mujoco(m, d, sim_clothes, cloth_names):
 
 def set_rigid_body_pos_to_sim(m, d,  rigid_bodies):
     last_rigid_body_transform = [rb.get_transform() for rb in rigid_bodies]
-    _mj_data_helper.for_each_rigid_meshes(m, d, lambda rigid_i, x, t, geo_mat, geo_pos , collision_mask, collision_group : _set_rigid_body_to_sim(rigid_i,  geo_mat, geo_pos, rigid_bodies, last_rigid_body_transform))
+    def rigid_fn(rigid_i, x, t, geo_mat, geo_pos , collision_mask, collision_group):
+        _set_rigid_body_to_sim(rigid_i,  geo_mat, geo_pos, rigid_bodies, last_rigid_body_transform)
+
+    _mj_data_helper.for_each_rigid_meshes(m, d, rigid_fn)
 
 
 def set_rigid_body_pos_with_velocity(rigid_bodies, last_transform, curr_transform ):
