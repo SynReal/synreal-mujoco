@@ -141,14 +141,14 @@ def for_each_geom_mesh(m: mujoco.MjModel,d: mujoco.MjData, fn):
 
         mesh_id = mesh_ids[i]
 
-        #if mesh_id < 0: # refer to a exsited mesh
-        #    continue
+        if mesh_id < 0: # refer to a exsited mesh
+           continue
 
-        #if geom_type[i] != mujoco.mjtGeom.mjGEOM_MESH:   # geom type is mesh type
-        #    continue
+        if geom_type[i] != mujoco.mjtGeom.mjGEOM_MESH:   # geom type is mesh type
+           continue
 
-        #if  mesh_graph_begin[mesh_id] < 0: # is a collision mesh
-        #    continue
+        if  mesh_graph_begin[mesh_id] < 0: # is a collision mesh
+           continue
 
         rb_id = rigidbody_id[i]
         geom_id = i
