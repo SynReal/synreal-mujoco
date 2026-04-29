@@ -137,22 +137,50 @@ def for_each_geom_mesh(m: mujoco.MjModel,d: mujoco.MjData, fn):
 
     slot_i = 0
     geom_num = _get_geo_num(m)
+
+    supported_geom_type = [
+        mujoco.mjtGeom.mjGEOM_MESH,
+        mujoco.mjtGeom.mjGEOM_BOX,
+        mujoco.mjtGeom.mjGEOM_CYLINDER,
+        mujoco.mjtGeom.mjGEOM_SPHERE
+    ]
+
+    current_geom_num_of_rigidbody = np.zeros(geom_num, dtype=int)
+
     for i in range(geom_num):
 
         mesh_id = mesh_ids[i]
 
-        #if mesh_id < 0: # refer to a exsited mesh
+        #if mesh_id < 0: # if a geometry doesn't have a mesh , may be plane/box etc.
         #    continue
 
-        #if geom_type[i] != mujoco.mjtGeom.mjGEOM_MESH:   # geom type is mesh type
-        #    continue
+        if geom_type[i] not in supported_geom_type:   # geom type is mesh type
+            continue
 
-        #if  mesh_graph_begin[mesh_id] < 0: # is a collision mesh
-        #    continue
+        if  mesh_id >= 0 and mesh_graph_begin[mesh_id] < 0: # is a collision mesh
+            continue
 
         rb_id = rigidbody_id[i]
         geom_id = i
-        fn( slot_i,geom_id, mesh_id, rb_id,geom_type[i] )
+
+        geom_name = mujoco. mj_id2name(m, mujoco.mjtObj.mjOBJ_BODY, rb_id)
+
+        curr_num = current_geom_num_of_rigidbody[rb_id]
+
+        if curr_num > 0:
+            geom_name += '/'+ str(curr_num)
+
+        current_geom_num_of_rigidbody[rb_id] += 1
+
+        #print(f' {slot_i} {rb_id} {geom_id} {mesh_id} {geom_name}')
+
+        # brief : a rigid body can have multiple geometry , that may or may not be a mesh
+        # slot_i: i
+        # geom_id: geometry id , what is left after filter out
+        # mesh_id : mesh id of current geometry if there is any
+        # rb_id : rigid boby id of current geometry
+        fn( slot_i, geom_id, mesh_id, rb_id, geom_type[i], geom_name )
+
         slot_i += 1
 
 
@@ -162,7 +190,7 @@ def for_each_rigid_meshes(m: mujoco.MjModel,d: mujoco.MjData, fn):
     contype = _mj_get_attr(m, "geom_contype")
     conaffinity =  _mj_get_attr(m,"geom_conaffinity")
 
-    def rigid_mesh_fn(slot_i, geom_id, mesh_id, rb_id, geom_type):
+    def rigid_mesh_fn(slot_i, geom_id, mesh_id, rb_id, geom_type,geom_name):
 
         if geom_type == mujoco.mjtGeom.mjGEOM_MESH:
 

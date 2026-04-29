@@ -1,3 +1,4 @@
+
 import os.path
 from copy import deepcopy
 
@@ -7,6 +8,10 @@ import numpy as np
 import json
 
 import synreal_mujoco._mj_data_helper as _mj_data_helper
+import synreal_mujoco.data_classes as dc
+import synreal_mujoco.utility as utility
+import synreal_mujoco.cloth_property as cloth_property
+from typing import Callable
 
 
 def _add_cloth_to_sim(x, t, collision_mask, collision_group, name, world, sim_clothes, cloth_names, fabric_setter):
@@ -106,7 +111,13 @@ def load_data(xml_path):
     return m, d
 
 
-def add_cloth_to_sim(m, d, world,name_start_with_will_considered_cloth, cloth_property_setter):
+def add_cloth_to_sim(m, d, world, name_start_with_will_considered_cloth='', cloth_property_setter = None):
+
+    utility.report_deprecated(add_cloth_to_sim)
+
+    if cloth_property_setter is None:
+        cloth_property_setter = lambda nama, attrib: cloth_property.set_cloth_property_default(attrib)
+
     sim_clothes = []
     cloth_names = []
     add_cloth = lambda x, t, collision_mask, collision_group, name :_add_cloth_to_sim(x, t, collision_mask, collision_group, name, world, sim_clothes, cloth_names, cloth_property_setter)
@@ -157,7 +168,12 @@ def extract_convex_hull(model, mesh_id):
     return verts, faces
 
 
-def add_rigid_body_to_sim(m, d, world, property_fn, rigidbody_with_convex_hull):
+def add_rigid_body_to_sim(m, d, world, property_fn = None, rigidbody_with_convex_hull = False):
+
+    utility.report_deprecated(add_rigid_body_to_sim)
+
+    if property_fn is None:
+        property_fn = lambda name, attrib: cloth_property.set_rigid_body_property_default(attrib)
 
     objects = []
 
@@ -169,7 +185,7 @@ def add_rigid_body_to_sim(m, d, world, property_fn, rigidbody_with_convex_hull):
 
     geo_size = _mj_data_helper._mj_get_attr(m,"geom_size")
 
-    def __add_rigid_body( slot_i, geom_id, mesh_id, rb_id , geom_type):
+    def __add_rigid_body( slot_i, geom_id, mesh_id, rb_id , geom_type, geom_name):
 
         t = _mj_data_helper. _get_mesh_tri(mesh_id, m)
         x = _mj_data_helper. _get_mesh_pos(mesh_id, m)
@@ -278,3 +294,69 @@ def get_collision_force_from_piece(rigidbody):
     return rigidbody.get_collision_force_piece()
 
 
+
+################################################################# new ###############################################
+
+
+def _add_rigid_body_to_sim(m, d, world, rigidbody_builders : Callable[[str],dc.rigid_body_builder] ):
+
+    objects = []
+
+    xmat = _mj_data_helper. _mj_get_attr(d, "geom_xmat")
+    xpos = _mj_data_helper. _mj_get_attr(d, "geom_xpos")
+
+    contype = _mj_data_helper._mj_get_attr(m, "geom_contype")
+    conaffinity =  _mj_data_helper._mj_get_attr(m,"geom_conaffinity")
+
+    geo_size = _mj_data_helper._mj_get_attr(m,"geom_size")
+
+    def __add_rigid_body( slot_i, geom_id, mesh_id, rb_id , geom_type, geom_name):
+
+        rigid_body_builder = rigidbody_builders(geom_name)
+
+        geo_pos = xpos[geom_id]
+        geo_mat = xmat[geom_id]
+
+        transform = _mj_data_helper. to_sim_transfrom(geo_mat, geo_pos)
+
+        if geom_type == mujoco.mjtGeom.mjGEOM_MESH:
+            t = _mj_data_helper._get_mesh_tri(mesh_id, m)
+            x = _mj_data_helper._get_mesh_pos(mesh_id, m)
+            if rigid_body_builder.with_convex_hull:
+                if m.mesh_graphadr[mesh_id] >= 0:
+                    x, t = extract_convex_hull(m, mesh_id)
+
+            mesh = sim.Mesh(t, x)
+            rigid_body = sim.RigidBody(mesh, transform)
+
+        elif geom_type == mujoco.mjtGeom.mjGEOM_SPHERE:
+            sphereSize = sim.SphereSize()
+            rigid_body = sim.RigidBody(sphereSize, transform)
+        elif geom_type == mujoco.mjtGeom.mjGEOM_BOX:
+            s = geo_size[geom_id]
+            boxSize =  sim.BoxSize()
+            boxSize.length_x = 2 * s[0]
+            boxSize.length_y = 2 * s[1]
+            boxSize.length_z = 2 * s[2]
+            rigid_body = sim.RigidBody(boxSize, transform)
+        elif geom_type == mujoco.mjtGeom.mjGEOM_CYLINDER:
+            cylinderSize =  sim.CylinderSize()
+            rigid_body = sim.RigidBody(cylinderSize, transform)
+        else:
+            print('unknown geometry type!')
+            return
+
+
+        rigid_body. set_attrib(rigid_body_builder.attrib)
+
+        rigid_body. set_pin(rigid_body_builder.is_fixed)
+        rigid_body. set_collision_group( contype[geom_id] )
+        rigid_body. set_collision_mask( conaffinity[geom_id] )
+
+        rigid_body. attach( world )
+
+        objects. append( rigid_body )
+
+    _mj_data_helper.for_each_geom_mesh(m, d, __add_rigid_body )
+
+    return  objects

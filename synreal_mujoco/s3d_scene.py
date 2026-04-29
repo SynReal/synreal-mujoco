@@ -1,83 +1,80 @@
 from copy import deepcopy
 from dataclasses import dataclass
 from typing import List
+from typing import Callable
 
 import numpy as np
 import synreal_sim as sim
 from synreal_mujoco._deformable_data_helper import *
 import synreal_mujoco.s3d_mj as s3d_mj
 from synreal_mujoco import cloth_property
+import synreal_mujoco.data_classes as dc
 
 import xml.etree.ElementTree as ET
-from pathlib import Path
-from dataclasses import dataclass, field
-
-@dataclass
-class s3d_scene:
-    world: sim.World = None
-    deformable_bodies: List[ sim.DeformableBody] = field(default_factory=list)
-    deformable_body_names : List[str] = field(default_factory=list)
-
-    rigid_bodies: List[ sim.RigidBody] = field(default_factory=list)
-
-    sim_cloth: List[sim.Cloth] = field(default_factory=list)
-    cloth_names: List[str] = field(default_factory=list)
-
-
-
-class deformable_body_builder:
-    def __init__(self, file:str, pos, rest_pos, tets, collision_faces):
-        self.file = file
-        self.pos = pos
-        self.rest_pos = rest_pos
-        self.tets = tets
-        self.collision_faces = collision_faces
-        self.attrib = None
-
 
 class s3d_scene_builder:
-    def __init__(self ):
-        self.deformable_bodies : List[deformable_body_builder] = []
-        self.deformable_bodies_ready : List[deformable_body_builder] = []
+    def __init__(self  ):
+        self.deformable_bodies : List[dc.deformable_body_builder] = []
+        self.deformable_bodies_ready : List[dc.deformable_body_builder] = []
         self.mjcf_file =''
         self.cloth_files = []
+        self.cloth_attribs : List[ sim.ClothAttrib ] = []
         self.cloth_name_prefix = 'cloth'
         self.deformable_body_name_prefix = 'dfm'
         self._temp_files: List[str] = []
+        self.rigidbody_builder : Callable[[str],dc.rigid_body_builder]
 
     # mujoco mjcf
-    def add_mjcf_rigidbodies(self, filename ):
+
+    # attrib_setter : lambda (rigidbody_name) -> rigidbody_attrib
+    def add_mjcf_rigidbodies( self, filename, rigidbody_builder : Callable[[str],dc.rigid_body_builder]= None ):
         self.mjcf_file = filename
+        if rigidbody_builder is None:
+            self.rigidbody_builder = lambda name : dc.rigid_body_builder() # defaul rb property
+        else:
+            self.rigidbody_builder = rigidbody_builder
 
     # clothes
     def add_cloth_by_file(self, filename ):
         self.cloth_files.append(filename)
+        attrib = cloth_property.get_cloth_property_default()
+        self.cloth_attribs.append(attrib)
+        return attrib
 
     # deformable body
     def add_deformable_body_by_file(self, filename, collision_faces):
-        self.deformable_bodies.append(deformable_body_builder(filename,[],[],[],[]))
+        dfm_builder = dc.deformable_body_builder( filename,[],[],[],[] )
+        self.deformable_bodies.append(dfm_builder)
+        dfm_attrib = sim.DeformableBodyAttrib()
+        dfm_builder.attrib = dfm_attrib
+        return dfm_attrib
 
     def add_deformable_body_by_file_with_boundary_collision_faces(self, filename ):
-        dfm_builder = deformable_body_builder(filename,[],[],[],[])
+        dfm_builder = dc.deformable_body_builder(filename,[],[],[],[])
         dfm_attrib = sim.DeformableBodyAttrib()
         dfm_builder.attrib = dfm_attrib
         self.deformable_bodies.append(dfm_builder)
         return dfm_attrib
 
     def add_deformable_body(self, pos, rest_pos,tets, collision_faces):
-        self.deformable_bodies.append(deformable_body_builder('', pos, rest_pos, tets, collision_faces))
+        dfm_builder = dc.deformable_body_builder('', pos, rest_pos, tets, collision_faces)
+        self.deformable_bodies.append(dfm_builder)
+        dfm_attrib = sim.DeformableBodyAttrib()
+        dfm_builder.attrib = dfm_attrib
+        return dfm_attrib
+
 
     @staticmethod
-    def _add_rigid_body_to_scene(s : s3d_scene,m,d):
-        s.rigid_bodies = s3d_mj.add_rigid_body_to_sim(m, d, s.world, lambda name,attrib: cloth_property.set_rigid_body_property_default(attrib),False)
+    def _add_rigid_body_to_scene(s : dc.s3d_scene, m, d, rigidbody_builders : Callable[[str], dc.rigid_body_builder]):
+        s.rigid_bodies = s3d_mj._add_rigid_body_to_sim(m, d, s.world, rigidbody_builders)
 
 
     @staticmethod
-    def _add_cloth_to_scene(s : s3d_scene,m,d , name_start_with_will_considered_cloth):
+    def _add_cloth_to_scene(s : dc.s3d_scene, m, d , name_start_with_will_considered_cloth):
         s.sim_cloth, s.cloth_names = s3d_mj.add_cloth_to_sim(m, d, s.world, name_start_with_will_considered_cloth, lambda nama, attrib: cloth_property.set_cloth_property_default( attrib))
 
 
-    def _add_deformable_body_to_scene(self, scene : s3d_scene):
+    def _add_deformable_body_to_scene(self, scene : dc.s3d_scene):
         scene.deformable_bodies = []
         for dfm in self.deformable_bodies_ready:
             obj = sim.DeformableBody(dfm.pos , dfm.collision_faces, dfm.tets, dfm.rest_pos)
@@ -95,7 +92,7 @@ class s3d_scene_builder:
                 f.write(f'f {face[0]+1} {face[1]+1} {face[2]+1}\n')
 
     @staticmethod
-    def add_flexcomp_to_worldbody(tree: ET.ElementTree, name:str, file: str, pos,quat, **attribs) -> None:
+    def _add_flexcomp_to_worldbody(tree: ET.ElementTree, name:str, file: str, pos,quat, **attribs) -> None:
         """Inserts a <flexcomp> with the given file into <worldbody>. Extra keyword
         arguments are added as XML attributes (e.g. name, type, pos, radius, dim)."""
         worldbody = tree.getroot().find('worldbody')
@@ -110,14 +107,14 @@ class s3d_scene_builder:
             'radius': '0.0005',
             'dim': '2',
             'custom': 'true',
-            'file': file
+            'file': str(file)
         }
         attrs.update(attribs)
         elem = ET.SubElement(worldbody, 'flexcomp', attrs)
         elem.text = '\n        '  # forces explicit </flexcomp> closing tag instead of />
         elem.tail = '\n\n    '    # newline between </flexcomp> and </worldbody>
 
-    def _add_flex_cloth(self,s:s3d_scene):
+    def _add_flex_cloth(self, s: dc.s3d_scene):
         import os
         tree = ET.parse(self.mjcf_file)
 
@@ -126,7 +123,7 @@ class s3d_scene_builder:
         # cloth
         for i,cloth_file in enumerate(self.cloth_files):
             name = self.cloth_name_prefix +'_' + str(i)
-            s3d_scene_builder.add_flexcomp_to_worldbody(tree, self.cloth_name_prefix, cloth_file,[-0.8,-2.0,0.2],[1,0,0,0])
+            s3d_scene_builder._add_flexcomp_to_worldbody(tree, self.cloth_name_prefix, cloth_file,[-0.8,-2.0,0.2],[1,0,0,0])
 
         # deformable body
         s.deformable_body_names =[]
@@ -163,7 +160,7 @@ class s3d_scene_builder:
             self.deformable_bodies_ready.append(dfm_b)
 
             name = self.deformable_body_name_prefix +'_' + str(i)
-            s3d_scene_builder.add_flexcomp_to_worldbody(
+            s3d_scene_builder._add_flexcomp_to_worldbody(
                 tree, name, os.path.basename(obj_path), offset, rot_quat)
             s.deformable_body_names.append(name)
 
@@ -177,7 +174,7 @@ class s3d_scene_builder:
     # build
     def build(self ):
 
-        scene = s3d_scene()
+        scene = dc.s3d_scene()
 
         self._add_flex_cloth(scene)
 
@@ -190,7 +187,7 @@ class s3d_scene_builder:
 
         scene.world = s3d_mj.get_a_sim_world(m)
 
-        s3d_scene_builder._add_rigid_body_to_scene(scene, m, d)
+        s3d_scene_builder._add_rigid_body_to_scene(scene, m, d, self.rigidbody_builder )
 
         name_start_with_will_considered_cloth='cloth'
         s3d_scene_builder._add_cloth_to_scene(scene, m, d, name_start_with_will_considered_cloth)

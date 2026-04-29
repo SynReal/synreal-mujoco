@@ -1,3 +1,6 @@
+# old api , will be remove eventually
+# check out peper_cloth.py for new api
+
 import time
 
 import mujoco.viewer
@@ -11,8 +14,8 @@ m , d = s3d_mj.load_data('xml_projects/piper_secription_with_cloth/piper_descrip
 
 world = s3d_mj.get_a_sim_world(m)
 
-sim_cloth, cloth_names = s3d_mj.add_cloth_to_sim(m, d, world,'cloth', lambda nama,attrib : cloth_property.set_cloth_property_default(attrib))
-rigid_bodies = s3d_mj.add_rigid_body_to_sim(m, d, world, lambda name,attrib: cloth_property.set_rigid_body_property_default(attrib),False)
+sim_cloth, cloth_names = s3d_mj.add_cloth_to_sim(m, d, world) # with default property
+rigid_bodies = s3d_mj.add_rigid_body_to_sim(m, d, world ) # with default property
 
 sync_rate = 1
 
