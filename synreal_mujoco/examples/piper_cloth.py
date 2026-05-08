@@ -6,6 +6,7 @@ import synreal_mujoco.s3d_scene as s3d_scene
 import synreal_mujoco.s3d_scene_stepper as s3d_scene_stepper
 import synreal_mujoco.data_classes as dc
 from pathlib import Path
+import numpy as np
 
 s3d_mj.log_in_simulation(login_file='../../simulation_login.json') # this line is optional, but a login prompt will pop up latter
 
@@ -23,8 +24,10 @@ def rb_builder(name):
 s3d_scene_builder.add_mjcf_rigidbodies( asset_dir/ 'piper_secription'/'piper_description.xml', rb_builder)
 
 ######### cloth
-cloth_attrib = s3d_scene_builder.add_cloth_by_file( asset_dir / 'clothes'/ '50k_plane.obj')
-cloth_attrib.bend_stiff = sim.Vec3f(1e-6, 1e-6, 1e-6)
+cloth_builder = s3d_scene_builder.add_cloth_by_file( asset_dir / 'clothes'/ '50k_plane.obj')
+cloth_builder.translate = np.array([-0.8, -2.0, 0.15])
+cloth_builder.quat = np.array([1,0,0,0])
+cloth_builder.attrib.bend_stiff = sim.Vec3f(1e-6, 1e-6, 1e-6)
 
 m,d,s = s3d_scene_builder.build()
 

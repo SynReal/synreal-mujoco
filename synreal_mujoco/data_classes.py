@@ -2,6 +2,8 @@
 from dataclasses import dataclass, field
 from typing import List
 from typing import Callable
+
+import numpy as np
 import synreal_sim as sim
 from synreal_mujoco import cloth_property
 
@@ -22,6 +24,13 @@ class rigid_body_builder:
     with_convex_hull : bool = False
     is_fixed: bool = True
     attrib: sim.RigidBodyAttrib = cloth_property.get_rigid_body_property_default()
+
+
+@dataclass
+class cloth_builder:
+    translate = np.array([0,0,0])
+    quat = np.array([1,0,0, 0])
+    attrib: sim.ClothAttrib = cloth_property.get_cloth_property_default()
 
 class deformable_body_builder:
     def __init__(self, file:str, pos, rest_pos, tets, collision_faces):

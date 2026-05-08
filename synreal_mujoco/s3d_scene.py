@@ -19,13 +19,16 @@ class s3d_scene_builder:
     def __init__(self  ):
         self.deformable_bodies : List[dc.deformable_body_builder] = []
         self.deformable_bodies_ready : List[dc.deformable_body_builder] = []
-        self.mjcf_file =''
-        self.cloth_files = []
-        self.cloth_attrib_map : Dict[str, sim.ClothAttrib ] = {}
-        self.cloth_name_prefix = 'cloth'
         self.deformable_body_name_prefix = 'dfm'
         self._temp_files: List[str] = []
+
+        self.mjcf_file =''
         self.rigidbody_builder : Callable[[str],dc.rigid_body_builder]
+
+        self.cloth_files = []
+        self.cloth_builder_map : Dict[str, dc.cloth_builder] = {}
+        self.cloth_name_prefix = 'cloth'
+
 
     # mujoco mjcf
 
@@ -41,10 +44,10 @@ class s3d_scene_builder:
     # clothes
     def add_cloth_by_file(self, filename ):
         self.cloth_files.append(filename)
-        attrib = cloth_property.get_cloth_property_default()
+        builder = dc.cloth_builder()
         name = s3d_scene_builder. _get_cloth_name_frome_file(self.cloth_name_prefix, filename)
-        self.cloth_attrib_map[name] = attrib
-        return attrib
+        self.cloth_builder_map[name] = builder
+        return builder
 
     # deformable body
     def add_deformable_body_by_file(self, filename, collision_faces):
@@ -83,7 +86,7 @@ class s3d_scene_builder:
     def _add_cloth_to_scene(s : dc.s3d_scene, m, d , attrib_map, name_start_with_will_considered_cloth):
 
         def __attrib_getter (name ):
-           return attrib_map[name]
+           return attrib_map[name].attrib
 
         s.sim_cloth, s.cloth_names = s3d_mj._add_cloth_to_sim_2( m, d, s.world,  __attrib_getter , name_start_with_will_considered_cloth )
 
@@ -137,7 +140,8 @@ class s3d_scene_builder:
         # cloth
         for i,cloth_file in enumerate(self.cloth_files):
             name = s3d_scene_builder._get_cloth_name_frome_file(self.cloth_name_prefix, cloth_file)
-            s3d_scene_builder._add_flexcomp_to_worldbody(tree, name, cloth_file,[-0.8,-2.0,0.2],[1,0,0,0])
+            cloth_builder = self.cloth_builder_map[name]
+            s3d_scene_builder._add_flexcomp_to_worldbody(tree, name, cloth_file,cloth_builder.translate,cloth_builder.quat)
 
         # deformable body
         s.deformable_body_names =[]
@@ -203,7 +207,7 @@ class s3d_scene_builder:
 
         s3d_scene_builder. _add_rigid_body_to_scene(scene, m, d, self.rigidbody_builder )
 
-        s3d_scene_builder. _add_cloth_to_scene(scene, m, d, self.cloth_attrib_map, self.cloth_name_prefix)
+        s3d_scene_builder. _add_cloth_to_scene(scene, m, d, self.cloth_builder_map, self.cloth_name_prefix)
 
         self._add_deformable_body_to_scene(scene)
 
