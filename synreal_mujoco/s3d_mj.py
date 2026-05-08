@@ -14,13 +14,11 @@ import synreal_mujoco.cloth_property as cloth_property
 from typing import Callable
 
 
-def _add_cloth_to_sim(x, t, collision_mask, collision_group, name, world, sim_clothes, cloth_names, fabric_setter):
+def _add_cloth_to_sim(x, t, collision_mask, collision_group, name, world, sim_clothes, cloth_names, fabric_getter):
 
     cloth = sim.Cloth(t, x, np.array([], dtype = float), False)
 
-    cloth_attrib = sim.ClothAttrib()
-
-    fabric_setter(name, cloth_attrib)
+    cloth_attrib = fabric_getter(name )
 
     cloth.set_attrib(cloth_attrib)
 
@@ -111,16 +109,16 @@ def load_data(xml_path):
     return m, d
 
 
-def add_cloth_to_sim(m, d, world, name_start_with_will_considered_cloth='', cloth_property_setter = None):
+def add_cloth_to_sim(m, d, world, name_start_with_will_considered_cloth='', cloth_property_getter = None):
 
     utility.report_deprecated(add_cloth_to_sim)
 
-    if cloth_property_setter is None:
-        cloth_property_setter = lambda nama, attrib: cloth_property.set_cloth_property_default(attrib)
+    if cloth_property_getter is None:
+        cloth_property_getter = lambda nama : cloth_property.get_cloth_property_default()
 
     sim_clothes = []
     cloth_names = []
-    add_cloth = lambda x, t, collision_mask, collision_group, name :_add_cloth_to_sim(x, t, collision_mask, collision_group, name, world, sim_clothes, cloth_names, cloth_property_setter)
+    add_cloth = lambda x, t, collision_mask, collision_group, name :_add_cloth_to_sim(x, t, collision_mask, collision_group, name, world, sim_clothes, cloth_names, cloth_property_getter)
     _mj_data_helper.for_each_cloth(m, d,name_start_with_will_considered_cloth, add_cloth  )
     return sim_clothes,cloth_names
 
@@ -296,8 +294,6 @@ def get_collision_force_from_piece(rigidbody):
 
 
 ################################################################# new ###############################################
-
-
 def _add_rigid_body_to_sim(m, d, world, rigidbody_builders : Callable[[str],dc.rigid_body_builder] ):
 
     objects = []
@@ -360,3 +356,12 @@ def _add_rigid_body_to_sim(m, d, world, rigidbody_builders : Callable[[str],dc.r
     _mj_data_helper.for_each_geom_mesh(m, d, __add_rigid_body )
 
     return  objects
+
+
+def _add_cloth_to_sim_2(m, d, world, cloth_property_getter , name_start_with_will_considered_cloth=''):
+
+    sim_clothes = []
+    cloth_names = []
+    add_cloth = lambda x, t, collision_mask, collision_group, name :_add_cloth_to_sim(x, t, collision_mask, collision_group, name, world, sim_clothes, cloth_names, cloth_property_getter)
+    _mj_data_helper.for_each_cloth(m, d,name_start_with_will_considered_cloth, add_cloth  )
+    return sim_clothes,cloth_names

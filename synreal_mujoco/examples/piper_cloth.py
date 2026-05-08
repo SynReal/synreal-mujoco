@@ -1,5 +1,6 @@
 import mujoco.viewer
 
+import synreal_sim as sim
 import synreal_mujoco.s3d_mj as s3d_mj
 import synreal_mujoco.s3d_scene as s3d_scene
 import synreal_mujoco.s3d_scene_stepper as s3d_scene_stepper
@@ -23,9 +24,7 @@ s3d_scene_builder.add_mjcf_rigidbodies( asset_dir/ 'piper_secription'/'piper_des
 
 ######### cloth
 cloth_attrib = s3d_scene_builder.add_cloth_by_file( asset_dir / 'clothes'/ '50k_plane.obj')
-cloth_attrib.stretch_stiff.x = 200
-cloth_attrib.stretch_stiff.y = 200
-cloth_attrib.stretch_stiff.z = 200
+cloth_attrib.bend_stiff = sim.Vec3f(1e-6, 1e-6, 1e-6)
 
 m,d,s = s3d_scene_builder.build()
 

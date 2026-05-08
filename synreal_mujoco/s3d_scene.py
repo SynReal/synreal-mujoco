@@ -2,6 +2,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from typing import List
 from typing import Callable
+from typing import Dict
 
 import numpy as np
 import synreal_sim as sim
@@ -11,6 +12,8 @@ from synreal_mujoco import cloth_property
 import synreal_mujoco.data_classes as dc
 
 import xml.etree.ElementTree as ET
+from pathlib import Path
+
 
 class s3d_scene_builder:
     def __init__(self  ):
@@ -18,7 +21,7 @@ class s3d_scene_builder:
         self.deformable_bodies_ready : List[dc.deformable_body_builder] = []
         self.mjcf_file =''
         self.cloth_files = []
-        self.cloth_attribs : List[ sim.ClothAttrib ] = []
+        self.cloth_attrib_map : Dict[str, sim.ClothAttrib ] = {}
         self.cloth_name_prefix = 'cloth'
         self.deformable_body_name_prefix = 'dfm'
         self._temp_files: List[str] = []
@@ -27,6 +30,7 @@ class s3d_scene_builder:
     # mujoco mjcf
 
     # attrib_setter : lambda (rigidbody_name) -> rigidbody_attrib
+    # note: set attrib with setter is for performance reason, so that the mjcf file can be loaded later instead of load here right away
     def add_mjcf_rigidbodies( self, filename, rigidbody_builder : Callable[[str],dc.rigid_body_builder]= None ):
         self.mjcf_file = filename
         if rigidbody_builder is None:
@@ -38,7 +42,8 @@ class s3d_scene_builder:
     def add_cloth_by_file(self, filename ):
         self.cloth_files.append(filename)
         attrib = cloth_property.get_cloth_property_default()
-        self.cloth_attribs.append(attrib)
+        name = s3d_scene_builder. _get_cloth_name_frome_file(self.cloth_name_prefix, filename)
+        self.cloth_attrib_map[name] = attrib
         return attrib
 
     # deformable body
@@ -70,8 +75,17 @@ class s3d_scene_builder:
 
 
     @staticmethod
-    def _add_cloth_to_scene(s : dc.s3d_scene, m, d , name_start_with_will_considered_cloth):
-        s.sim_cloth, s.cloth_names = s3d_mj.add_cloth_to_sim(m, d, s.world, name_start_with_will_considered_cloth, lambda nama, attrib: cloth_property.set_cloth_property_default( attrib))
+    def _get_cloth_name_frome_file(prefix, obj_file):
+        file_base_name = str(Path(obj_file).stem)
+        return prefix +'_' + file_base_name
+
+    @staticmethod
+    def _add_cloth_to_scene(s : dc.s3d_scene, m, d , attrib_map, name_start_with_will_considered_cloth):
+
+        def __attrib_getter (name ):
+           return attrib_map[name]
+
+        s.sim_cloth, s.cloth_names = s3d_mj._add_cloth_to_sim_2( m, d, s.world,  __attrib_getter , name_start_with_will_considered_cloth )
 
 
     def _add_deformable_body_to_scene(self, scene : dc.s3d_scene):
@@ -122,8 +136,8 @@ class s3d_scene_builder:
 
         # cloth
         for i,cloth_file in enumerate(self.cloth_files):
-            name = self.cloth_name_prefix +'_' + str(i)
-            s3d_scene_builder._add_flexcomp_to_worldbody(tree, self.cloth_name_prefix, cloth_file,[-0.8,-2.0,0.2],[1,0,0,0])
+            name = s3d_scene_builder._get_cloth_name_frome_file(self.cloth_name_prefix, cloth_file)
+            s3d_scene_builder._add_flexcomp_to_worldbody(tree, name, cloth_file,[-0.8,-2.0,0.2],[1,0,0,0])
 
         # deformable body
         s.deformable_body_names =[]
@@ -187,11 +201,10 @@ class s3d_scene_builder:
 
         scene.world = s3d_mj.get_a_sim_world(m)
 
-        s3d_scene_builder._add_rigid_body_to_scene(scene, m, d, self.rigidbody_builder )
+        s3d_scene_builder. _add_rigid_body_to_scene(scene, m, d, self.rigidbody_builder )
 
-        name_start_with_will_considered_cloth='cloth'
-        s3d_scene_builder._add_cloth_to_scene(scene, m, d, name_start_with_will_considered_cloth)
+        s3d_scene_builder. _add_cloth_to_scene(scene, m, d, self.cloth_attrib_map, self.cloth_name_prefix)
 
         self._add_deformable_body_to_scene(scene)
 
-        return m,d,scene
+        return m, d, scene

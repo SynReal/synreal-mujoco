@@ -116,7 +116,7 @@ def for_each_cloth(m: mujoco.MjModel, d: mujoco.MjData, name_start_with_will_con
 
         name = mujoco.mj_id2name(m, mujoco.mjtObj.mjOBJ_FLEX, i)
 
-        if not name.startswith(name_start_with_will_considered_cloth) :
+        if not ( name.startswith(name_start_with_will_considered_cloth) or name_start_with_will_considered_cloth =='' ) :
             continue
 
         x = _get_flex_pos(i, m, d)
