@@ -32,11 +32,19 @@ class cloth_builder:
     quat = np.array([1,0,0, 0])
     attrib: sim.ClothAttrib = cloth_property.get_cloth_property_default()
 
-class deformable_body_builder:
-    def __init__(self, file:str, pos, rest_pos, tets, collision_faces):
-        self.file = file
+
+@dataclass
+class deformable_body_builder2:
+    attrib = sim.DeformableBodyAttrib()
+    collision_faces = None
+    get_pos = None  # lambda : positions -> f(positions)
+    get_rest_pos = None # lambda : positions -> f(positions)
+
+
+class deformable_body_constructor_param:
+    def __init__(self, pos, rest_pos, tets, collision_faces,attrib):
         self.pos = pos
         self.rest_pos = rest_pos
         self.tets = tets
         self.collision_faces = collision_faces
-        self.attrib = None
+        self.attrib = attrib

@@ -2,19 +2,9 @@
 import style3dsim as sim
 
 
-def set_cloth_property_default(cloth_attrib):
-
-    cloth_attrib.stretch_stiff = sim.Vec3f(100, 100, 100)
-    cloth_attrib.bend_stiff = sim.Vec3f(2e-6, 2e-6, 2e-6)
-    cloth_attrib.density = 0.03
-    cloth_attrib.static_friction = 0.03
-    cloth_attrib.dynamic_friction = 0.03
-    cloth_attrib.thickness = 1e-3
-
-    return cloth_attrib
-
+## cloth
 def get_cloth_property_default():
-    cloth_attrib=sim.ClothAttrib ()
+    cloth_attrib = sim.ClothAttrib ()
     cloth_attrib.stretch_stiff = sim.Vec3f(100, 100, 100)
     cloth_attrib.bend_stiff = sim.Vec3f(2e-6, 2e-6, 2e-6)
     cloth_attrib.density = 0.03
@@ -23,8 +13,9 @@ def get_cloth_property_default():
     cloth_attrib.thickness = 1e-3
     return cloth_attrib
 
-def set_cloth_property_s3d_default(cloth_attrib):
+def get_cloth_property_s3d_default():
 
+    cloth_attrib = sim.ClothAttrib ()
     cloth_attrib.stretch_stiff = sim.Vec3f(150, 150, 10)
     cloth_attrib.bend_stiff = sim.Vec3f(2e-6, 2e-6, 2e-6)
     cloth_attrib.density = 0.3
@@ -34,9 +25,9 @@ def set_cloth_property_s3d_default(cloth_attrib):
 
     return cloth_attrib
 
-def set_cloth_property_s3d_wool(cloth_attrib):
+def get_cloth_property_s3d_wool():
 
-    cloth_attrib = sim.ClothAttrib()
+    cloth_attrib = sim.ClothAttrib ()
     cloth_attrib.stretch_stiff = sim.Vec3f(1000, 1000, 380)
     cloth_attrib.bend_stiff = sim.Vec3f(2.2e-6, 8e-7, 1.4e-6)
     cloth_attrib.density = 0.28
@@ -46,7 +37,8 @@ def set_cloth_property_s3d_wool(cloth_attrib):
 
     return cloth_attrib
 
-def set_cloth_property_s3d_silk(cloth_attrib):
+def get_cloth_property_s3d_silk():
+    cloth_attrib = sim.ClothAttrib ()
     cloth_attrib.stretch_stiff = sim.Vec3f(1000, 1000, 40)
     cloth_attrib.bend_stiff = sim.Vec3f(1.6e-6, 1.5e-6, 1.5e-6)
     cloth_attrib.density = 0.024
@@ -58,15 +50,11 @@ def set_cloth_property_s3d_silk(cloth_attrib):
 
 
 ## rigid body
-def set_rigid_body_property_default( rigid_body_attrib ):
-    rigid_body_attrib. dynamic_friction = 0.03
-    rigid_body_attrib. static_friction = 0.03
-    rigid_body_attrib. mass = 3e-2
-
-
 def get_rigid_body_property_default( ):
     rigid_body_attrib = sim.RigidBodyAttrib()
     rigid_body_attrib. dynamic_friction = 0.03
     rigid_body_attrib. static_friction = 0.03
     rigid_body_attrib. mass = 3e-2
     return rigid_body_attrib
+
+
