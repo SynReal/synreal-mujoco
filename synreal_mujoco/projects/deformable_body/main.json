@@ -1,0 +1,29 @@
+{
+    "project_data": {
+        "entities": [
+            {
+                "mjcf_rigidbody": {
+                    "path": "../../examples/xml_projects/piper_secription/piper_description.xml"
+                }
+            },
+            {
+                "deformable_body": {
+                    "path": "../../examples/xml_projects/piper_secription/tets1.vtk",
+                    "trans":{
+                        "transform":
+                        {
+                            "translation": [0,0,0.3]
+
+                        }
+                    },
+                    "attrib": {
+                        "deformable_body_attrib":
+                        {
+                            "youngsModulus": 1e6  
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
