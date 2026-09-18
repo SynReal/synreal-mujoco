@@ -36,6 +36,13 @@ class cloth_attrib:
     volumeConserveStrength: float = 1e2
     frozen: bool = False
 
+
+@dataclass
+class cloth:
+    path: Path | None = None
+    attrib: cloth_attrib = field(default_factory=cloth_attrib)
+    trans: transform = field(default_factory=transform)
+
 @dataclass
 class deformable_body:
     path: Path | None = None

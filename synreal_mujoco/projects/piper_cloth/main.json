@@ -1,0 +1,28 @@
+{
+    "project_data": {
+        "entities": [
+            {
+                "mjcf_rigidbody": {
+                    "path": "assets/piper_description.xml"
+                }
+            },
+            {
+                "cloth": {
+                    "path": "assets/50k_plane.obj",
+                    "trans":{
+                        "transform":
+                        {
+                            "translation": [-0.8, -2.0, 0.15]
+                        }
+                    },
+                    "attrib": {
+                        "cloth_attrib":
+                        {
+                            "bendStiffness": [1e-6, 1e-6, 1e-6]  
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

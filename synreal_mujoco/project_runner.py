@@ -1,5 +1,7 @@
 
 import mujoco.viewer
+import numpy as np
+import synreal_sim as sim
 
 from pathlib import Path
 import sys
@@ -49,6 +51,25 @@ class project_runner:
             dfm_attrib.attrib.youngsModulus = entity.attrib.youngsModulus
 
             dfm_attrib.get_pos = lambda  x: x + entity.trans.translation # alter current pos
+        elif isinstance(entity, pdc.cloth): 
+            cloth_builder = s3d_scene_builder.add_cloth_by_file((project_path / entity.path).resolve())
+            cloth_builder.translate = np.array(entity.trans.translation, dtype=float, copy=True)
+            cloth_builder.quat = np.empty(4)
+            # Fixed-axis XYZ Euler angles in radians; MuJoCo uses wxyz quaternions.
+            mujoco.mju_euler2Quat(cloth_builder.quat, np.asarray(entity.trans.eulerXYZ, dtype=float), 'XYZ')
+
+            attrib = entity.attrib
+            cloth_builder.attrib = sim.ClothAttrib()
+            cloth_builder.attrib.stretch_stiff = sim.Vec3f(*attrib.stretchStiffness)
+            cloth_builder.attrib.bend_stiff = sim.Vec3f(*attrib.bendStiffness)
+            cloth_builder.attrib.thickness = attrib.thickness
+            cloth_builder.attrib.density = attrib.density
+            cloth_builder.attrib.pressure = attrib.pressure
+            cloth_builder.attrib.static_friction = attrib.staticFriction
+            cloth_builder.attrib.dynamic_friction = attrib.dynamicFriction
+            cloth_builder.attrib.yield_curvature = attrib.yieldCurvature
+            cloth_builder.attrib.volume_conserve_strength = attrib.volumeConserveStrength
+            cloth_builder.attrib.frozen = attrib.frozen
 
 
 
@@ -79,5 +100,6 @@ class project_runner:
 if __name__ == '__main__':
     l_project_runner = project_runner()
     cwd = Path(__file__).parent.resolve()
-    project_path = cwd / 'projects' / 'deformable_body'
+    #project_path = cwd / 'projects' / 'deformable_body'
+    project_path = cwd / 'projects' / 'piper_cloth'
     l_project_runner.run(project_path)

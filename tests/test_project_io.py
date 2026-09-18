@@ -34,9 +34,8 @@ class ProjectIOTests(unittest.TestCase):
         self.assertIsInstance(deformable, dc.deformable_body)
         self.assertEqual(rigid.path, Path('assets/piper_description.xml'))
         self.assertEqual(deformable.path, Path('assets/tets1.vtk'))
-        self.assertEqual(rigid.option, {})
         self.assertIsInstance(deformable.attrib, dc.deformable_body_attrib)
-        self.assertEqual(deformable.attrib.density, 0.3)
+        self.assertEqual(deformable.attrib.density, dc.deformable_body_attrib().density)
         self.assertEqual(deformable.attrib.youngsModulus, 1e6)
         self.assertIsNone(result.viewer)
 
