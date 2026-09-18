@@ -36,10 +36,10 @@ class ProjectRunnerClothTests(unittest.TestCase):
         scene = s3d_scene_builder()
         runner = project_runner()
         first = pdc.cloth(path=Path('first.obj'), attrib=pdc.cloth_attrib(
-            stretchStiffness=np.array([10., 20., 30.]),
-            bendStiffness=np.array([1e-5, 2e-5, 3e-5]),
-            thickness=0.002, density=0.4, pressure=2., staticFriction=0.2,
-            dynamicFriction=0.1, yieldCurvature=12., volumeConserveStrength=80., frozen=True,
+            stretch_stiffness=np.array([10., 20., 30.]),
+            bend_stiffness=np.array([1e-5, 2e-5, 3e-5]),
+            thickness=0.002, density=0.4, pressure=2., static_friction=0.2,
+            dynamic_friction=0.1, yield_curvature=12., volume_conserve_strength=80., frozen=True,
         ))
         runner._dispatch_entity(first, scene)
         runner._dispatch_entity(pdc.cloth(path=Path('second.obj')), scene)
@@ -60,7 +60,7 @@ class ProjectRunnerClothTests(unittest.TestCase):
 
     def test_cloth_transform_reaches_mjcf(self):
         entity = pdc.cloth(path=Path('rotated.obj'), trans=pdc.transform(
-            translation=np.array([1., 2., 3.]), eulerXYZ=np.array([0., 0., np.pi / 2]),
+            translation=np.array([1., 2., 3.]), euler_xyz=np.array([0., 0., np.pi / 2]),
         ))
         scene = s3d_scene_builder()
         project_runner()._dispatch_entity(entity, scene)

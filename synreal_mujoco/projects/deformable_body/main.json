@@ -19,7 +19,7 @@
                     "attrib": {
                         "deformable_body_attrib":
                         {
-                            "youngsModulus": 1e6  
+                            "youngs_modulus": 1e6
                         }
                     }
                 }

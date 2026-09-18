@@ -44,11 +44,11 @@ class project_runner:
         elif isinstance(entity, pdc.deformable_body): 
             dfm_attrib = s3d_scene_builder.add_deformable_body_by_file((project_path / entity.path).resolve())
             dfm_attrib.attrib.density = entity.attrib.density
-            dfm_attrib.attrib.dynamicFriction = entity.attrib.dynamicFriction
-            dfm_attrib.attrib.poissonRatio = entity.attrib.poissonRatio
-            dfm_attrib.attrib.staticFriction = entity.attrib.staticFriction
-            dfm_attrib.attrib.surfaceOffsets = entity.attrib.surfaceOffsets
-            dfm_attrib.attrib.youngsModulus = entity.attrib.youngsModulus
+            dfm_attrib.attrib.dynamicFriction = entity.attrib.dynamic_friction
+            dfm_attrib.attrib.poissonRatio = entity.attrib.poisson_ratio
+            dfm_attrib.attrib.staticFriction = entity.attrib.static_friction
+            dfm_attrib.attrib.surfaceOffsets = entity.attrib.surface_offsets
+            dfm_attrib.attrib.youngsModulus = entity.attrib.youngs_modulus
 
             dfm_attrib.get_pos = lambda  x: x + entity.trans.translation # alter current pos
         elif isinstance(entity, pdc.cloth): 
@@ -56,19 +56,19 @@ class project_runner:
             cloth_builder.translate = np.array(entity.trans.translation, dtype=float, copy=True)
             cloth_builder.quat = np.empty(4)
             # Fixed-axis XYZ Euler angles in radians; MuJoCo uses wxyz quaternions.
-            mujoco.mju_euler2Quat(cloth_builder.quat, np.asarray(entity.trans.eulerXYZ, dtype=float), 'XYZ')
+            mujoco.mju_euler2Quat(cloth_builder.quat, np.asarray(entity.trans.euler_xyz, dtype=float), 'XYZ')
 
             attrib = entity.attrib
             cloth_builder.attrib = sim.ClothAttrib()
-            cloth_builder.attrib.stretch_stiff = sim.Vec3f(*attrib.stretchStiffness)
-            cloth_builder.attrib.bend_stiff = sim.Vec3f(*attrib.bendStiffness)
+            cloth_builder.attrib.stretch_stiff = sim.Vec3f(*attrib.stretch_stiffness)
+            cloth_builder.attrib.bend_stiff = sim.Vec3f(*attrib.bend_stiffness)
             cloth_builder.attrib.thickness = attrib.thickness
             cloth_builder.attrib.density = attrib.density
             cloth_builder.attrib.pressure = attrib.pressure
-            cloth_builder.attrib.static_friction = attrib.staticFriction
-            cloth_builder.attrib.dynamic_friction = attrib.dynamicFriction
-            cloth_builder.attrib.yield_curvature = attrib.yieldCurvature
-            cloth_builder.attrib.volume_conserve_strength = attrib.volumeConserveStrength
+            cloth_builder.attrib.static_friction = attrib.static_friction
+            cloth_builder.attrib.dynamic_friction = attrib.dynamic_friction
+            cloth_builder.attrib.yield_curvature = attrib.yield_curvature
+            cloth_builder.attrib.volume_conserve_strength = attrib.volume_conserve_strength
             cloth_builder.attrib.frozen = attrib.frozen
 
 

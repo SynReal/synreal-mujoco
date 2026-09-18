@@ -36,7 +36,7 @@ class ProjectIOTests(unittest.TestCase):
         self.assertEqual(deformable.path, Path('assets/tets1.vtk'))
         self.assertIsInstance(deformable.attrib, dc.deformable_body_attrib)
         self.assertEqual(deformable.attrib.density, dc.deformable_body_attrib().density)
-        self.assertEqual(deformable.attrib.youngsModulus, 1e6)
+        self.assertEqual(deformable.attrib.youngs_modulus, 1e6)
         self.assertIsNone(result.viewer)
 
     def test_read_preserves_nested_values(self):
@@ -105,9 +105,9 @@ class ProjectIOTests(unittest.TestCase):
         encoded = json.loads(json.dumps(project_io._dump_json(original)))
         restored = project_io._undump_json(None, encoded)
         self.assertIsInstance(restored, dc.cloth_attrib)
-        self.assertIsInstance(restored.stretchStiffness, np.ndarray)
-        np.testing.assert_array_equal(restored.stretchStiffness, original.stretchStiffness)
-        np.testing.assert_array_equal(restored.bendStiffness, original.bendStiffness)
+        self.assertIsInstance(restored.stretch_stiffness, np.ndarray)
+        np.testing.assert_array_equal(restored.stretch_stiffness, original.stretch_stiffness)
+        np.testing.assert_array_equal(restored.bend_stiffness, original.bend_stiffness)
 
 
 if __name__ == '__main__':
