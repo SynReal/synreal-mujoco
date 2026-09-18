@@ -11,6 +11,7 @@ if __name__ == '__main__' and not __package__:
 
 from synreal_mujoco import project_io
 from synreal_mujoco import project_data_classes as pdc
+from synreal_mujoco.project_panel import launch as launch_panel
 
 import synreal_mujoco.s3d_mj as s3d_mj
 import synreal_mujoco.s3d_scene_builder as s3d_scene_builder
@@ -19,16 +20,22 @@ import synreal_mujoco.s3d_scene_stepper as s3d_scene_stepper
 
 class project_runner:
     def __init__(self):
-        pass
+        self.project_data = pdc.project_data()
 
-    def run(self,project_path:Path):
+    def run(self,project_path:Path, show_panel=True):
+        project_path = Path(project_path).resolve()
         l_project_io = project_io.project_io()
         l_project_io.read(project_path)
         l_project_io.save(project_path/'auto_save.json')
-        l_project_data = l_project_io.get_data()
-        s3d_scene_builder = self._config_project(l_project_data, project_path)
-        self._start_simulation_loop(s3d_scene_builder)
-        print("done without nothing!")
+        self.project_data = l_project_io.get_data()
+
+        if show_panel:
+            self.project_data = launch_panel(
+                self.project_data, project_path, build_scene=self._config_project,
+            )
+        else:
+            self._start_simulation_loop(self._config_project(self.project_data, project_path))
+
 
     def _config_project(self, p_project_data : project_io.dc.project_data, project_path: Path = Path('.')):
         self._login_sim()
@@ -43,6 +50,7 @@ class project_runner:
             s3d_scene_builder.add_mjcf_rigidbodies((project_path / entity.path).resolve())
         elif isinstance(entity, pdc.deformable_body): 
             dfm_attrib = s3d_scene_builder.add_deformable_body_by_file((project_path / entity.path).resolve())
+            dfm_attrib.attrib = sim.DeformableBodyAttrib()
             dfm_attrib.attrib.density = entity.attrib.density
             dfm_attrib.attrib.dynamicFriction = entity.attrib.dynamic_friction
             dfm_attrib.attrib.poissonRatio = entity.attrib.poisson_ratio
@@ -59,7 +67,6 @@ class project_runner:
             mujoco.mju_euler2Quat(cloth_builder.quat, np.asarray(entity.trans.euler_xyz, dtype=float), 'XYZ')
 
             attrib = entity.attrib
-            cloth_builder.attrib = sim.ClothAttrib()
             cloth_builder.attrib.stretch_stiff = sim.Vec3f(*attrib.stretch_stiffness)
             cloth_builder.attrib.bend_stiff = sim.Vec3f(*attrib.bend_stiffness)
             cloth_builder.attrib.thickness = attrib.thickness
@@ -78,23 +85,16 @@ class project_runner:
         login_file = curr_folder.parent/ 'simulation_login.json'
         s3d_mj.log_in_simulation(login_file=login_file) # this line is optional, but a login prompt will pop up latter
 
-    def _start_simulation_loop(self,s3d_scene_builder):
-        m, d, s = s3d_scene_builder.build()
-
-        l_s3d_scene_stepper = s3d_scene_stepper.s3d_scene_stepper(m,d,s)
-
+    def _start_simulation_loop(self, scene_builder):
+        m, d, s = scene_builder.build()
+        stepper = s3d_scene_stepper.s3d_scene_stepper(m, d, s)
         with mujoco.viewer.launch_passive(m, d) as viewer:
-
             while viewer.is_running():
-
                 mujoco.mj_step(m, d)
-
-                l_s3d_scene_stepper.set_rigidbody_pos_mj_2_s3d()
-                l_s3d_scene_stepper.step_s3d()
-                l_s3d_scene_stepper.set_cloth_pos_s3d_2_mj()
-
+                stepper.set_rigidbody_pos_mj_2_s3d()
+                stepper.step_s3d()
+                stepper.set_cloth_pos_s3d_2_mj()
                 viewer.sync()
-        
 
 
 if __name__ == '__main__':
