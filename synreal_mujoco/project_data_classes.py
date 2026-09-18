@@ -7,10 +7,6 @@ class transform:
     translation: np.ndarray = field(default_factory=lambda: np.array([0, 0, 0]))
     euler_xyz: np.ndarray = field(default_factory=lambda: np.array([0, 0, 0]))
 
-@dataclass
-class mjcf_rigidbody:
-    path: Path | None = None
-    trans: transform | None = None
 
 @dataclass
 class deformable_body_attrib:
@@ -50,8 +46,22 @@ class deformable_body:
     trans: transform = field(default_factory=transform)
 
 @dataclass
+class rigid_mesh:
+    path: Path | None = None
+    trans: transform | None = None
+
+@dataclass
+class rigid_shape:
+    type: str = 'box'
+    trans: transform | None = None
+@dataclass
+class mjcf_rigidbody:
+    path: Path | None = None
+    trans: transform | None = None
+
+@dataclass
 class project_data:
-    entities: list | None = None
+    entities: list[cloth | deformable_body | mjcf_rigidbody] | None = None
     viewer: str | None = None
 
 
