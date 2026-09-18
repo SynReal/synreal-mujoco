@@ -3,12 +3,12 @@
         "entities": [
             {
                 "mjcf_rigidbody": {
-                    "path": "../../examples/xml_projects/piper_secription/piper_description.xml"
+                    "path": "assets/piper_description.xml"
                 }
             },
             {
                 "deformable_body": {
-                    "path": "../../examples/xml_projects/piper_secription/tets1.vtk",
+                    "path": "assets/tets1.vtk",
                     "trans":{
                         "transform":
                         {
