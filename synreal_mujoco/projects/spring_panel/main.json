@@ -1,0 +1,11 @@
+{
+    "project_data": {
+        "entities": [
+            {
+                "mjcf_rigidbody": {
+                    "path": "assets/spring_panel.xml"
+                }
+            }
+        ]
+    }
+}

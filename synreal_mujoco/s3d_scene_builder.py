@@ -274,7 +274,7 @@ class s3d_scene_builder:
         self._add_flex_cloth(tree)
 
         # deformable body
-        deformable_bodies_param = self._add_flex_deformable_body( tree, base,s)
+        deformable_bodies_param = self._add_flex_deformable_body(tree,base,s)
 
         # write .xml
         out_path = base + '_flex' + ext
