@@ -29,7 +29,8 @@ active. Opening or closing prompts to save unsaved edits, with a Cancel option.
 Saving does not restart the simulation; reopen the saved file to run the edits.
 `auto_save.json` remains an output written on launch and successful Apply.
 
-The Pause checkbox pauses both solvers. Closing the panel resumes simulation;
+The Pause checkbox starts checked, and both solvers start paused. Uncheck it
+to start the simulation. Closing the panel resumes simulation;
 closing the viewer closes the panel. Commands are polled at 20 Hz and small
 status updates at 10 Hz. To disable the panel use
 `project_runner().run(project_path, show_panel=False)`.

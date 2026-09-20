@@ -199,7 +199,7 @@ class _ProjectEditor:
         self.bindings, self.controls = {}, []
         self.dirty, self.pending = False, False
         self._pending_open = None
-        self.paused = tk.BooleanVar(root, value=False)
+        self.paused = tk.BooleanVar(root, value=True)
         self.message = tk.StringVar(root, value='Use File to save or open a project.')
         self.clock = tk.StringVar(root, value='0.000 s')
         root.title(f'{self.project_path.name} | Project')

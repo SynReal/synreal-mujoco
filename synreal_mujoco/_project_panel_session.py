@@ -24,7 +24,7 @@ def _build_candidate(data, project_path, build_scene):
 
 def run_session(project_data, project_path, bundle, build_scene, panel):
     m, d, s = bundle
-    paused = False
+    paused = True
     next_poll = next_status = 0.0
     applied = False
     while True:

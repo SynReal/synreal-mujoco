@@ -82,7 +82,7 @@ class ProjectPanelTests(unittest.TestCase):
         self.assertEqual(self.editor.project_data.entities[0].attrib.density, 0.1)
 
     def test_pause_status_and_error(self):
-        self.editor.paused.set(True)
+        self.assertTrue(self.editor.paused.get())
         self.editor.pause()
         self.assertEqual(self.commands.get_nowait(), ('pause', True))
         self.status.put((1.25, True))
@@ -264,6 +264,7 @@ class PanelLaunchTests(unittest.TestCase):
         panel, viewer = MagicMock(), MagicMock()
         model, data, scene = MagicMock(), MagicMock(), MagicMock()
         panel.commands = Queue()
+        panel.commands.put(('pause', False))
         panel.commands.put(('apply', pdc.project_data()))
         viewer.is_running.side_effect = [True, False]
         with patch('synreal_mujoco._project_panel_session.mujoco.viewer.launch_passive') as view, \

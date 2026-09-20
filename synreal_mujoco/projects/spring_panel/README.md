@@ -1,7 +1,8 @@
 # Spring panel
 
-Open `main.json` using **File > Open** in the project panel. The scene starts
-automatically with one MJCF entity referencing `assets/spring_panel.xml`.
+Open `main.json` using **File > Open** in the project panel. The scene loads
+with one MJCF entity referencing `assets/spring_panel.xml`. The project UI
+starts paused by default; uncheck **Pause** to run the simulation.
 
 The orange panel is a 1 kg box measuring 0.50 × 0.36 × 0.08 m. Its center starts
 0.8 m above the floor, and its free joint permits all three translations and
