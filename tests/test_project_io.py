@@ -30,7 +30,7 @@ class ProjectIOTests(unittest.TestCase):
         self.assertIsInstance(result, dc.project_data)
         self.assertEqual(len(result.entities), 2)
         rigid, deformable = result.entities
-        self.assertIsInstance(rigid, dc.mjcf_rigidbody)
+        self.assertIsInstance(rigid, dc.mjcf_scene)
         self.assertIsInstance(deformable, dc.deformable_body)
         self.assertEqual(rigid.path, Path('assets/piper_description.xml'))
         self.assertEqual(deformable.path, Path('assets/tets1.vtk'))
@@ -47,7 +47,7 @@ class ProjectIOTests(unittest.TestCase):
         }
         source = {'project_data': {
             'viewer': 'passive',
-            'entities': [{'mjcf_rigidbody': {'path': None, 'option': options}}],
+            'entities': [{'mjcf_scene': {'path': None, 'option': options}}],
         }}
         with TemporaryDirectory() as directory:
             project_dir = Path(directory)
@@ -65,7 +65,7 @@ class ProjectIOTests(unittest.TestCase):
         initial = loader.project_data
         with TemporaryDirectory() as directory:
             project_dir = Path(directory)
-            (project_dir / 'main.json').write_text('{"mjcf_rigidbody": {}}', encoding='utf-8')
+            (project_dir / 'main.json').write_text('{"mjcf_scene": {}}', encoding='utf-8')
             with self.assertRaisesRegex(ValueError, 'project_data object'):
                 loader.read(project_dir)
         self.assertIs(loader.project_data, initial)
@@ -76,8 +76,8 @@ class ProjectIOTests(unittest.TestCase):
         self.assertIsInstance(result, dc.project_data)
         self.assertEqual(result.entities, [])
         self.assertIsNone(result.viewer)
-        default = project_io._undump_json(None, {'mjcf_rigidbody': {}})
-        self.assertIsInstance(default, dc.mjcf_rigidbody)
+        default = project_io._undump_json(None, {'mjcf_scene': {}})
+        self.assertIsInstance(default, dc.mjcf_scene)
         self.assertIsNone(default.path)
         self.assertIsNone(default.trans)
 

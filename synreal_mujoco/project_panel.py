@@ -100,7 +100,7 @@ def _validate_editor_data(data):
     if not isinstance(data, pdc.project_data) or not isinstance(data.entities, list):
         raise ValueError('Project must contain an entities list.')
     for entity in data.entities:
-        if not isinstance(entity, (pdc.mjcf_rigidbody, pdc.cloth, pdc.deformable_body)):
+        if not isinstance(entity, (pdc.mjcf_scene, pdc.cloth, pdc.deformable_body, pdc.rigid_mesh)):
             raise ValueError('Unsupported project entity.')
         if not isinstance(entity.path, Path):
             raise ValueError('Each entity must have an asset path.')
@@ -277,7 +277,7 @@ class _ProjectEditor:
             label = {'euler_xyz': 'Euler XYZ (rad)', 'translation': 'Translation (m)'}.get(field.name, field.name.replace('_', ' ').capitalize())
             ttk.Label(parent, text=label).grid(row=row, column=0, sticky='w', padx=(0, 10), pady=6)
             # These settings are not implemented by the current scene runner.
-            readonly = value is None or (kind == 'mjcf_rigidbody' and 'trans' in path) or (kind == 'deformable_body' and field.name == 'euler_xyz')
+            readonly = value is None or (kind == 'mjcf_scene' and 'trans' in path) or (kind == 'deformable_body' and field.name == 'euler_xyz')
             if readonly:
                 ttk.Label(parent, text='Not set' if value is None else str(value), foreground='#666666').grid(row=row, column=1, sticky='w')
             else:

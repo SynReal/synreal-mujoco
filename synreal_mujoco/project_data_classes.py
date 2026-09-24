@@ -48,20 +48,21 @@ class deformable_body:
 @dataclass
 class rigid_mesh:
     path: Path | None = None
-    trans: transform | None = None
+    trans: transform | None = field(default_factory=transform)
 
 @dataclass
 class rigid_shape:
     type: str = 'box'
     trans: transform | None = None
+
 @dataclass
-class mjcf_rigidbody:
+class mjcf_scene:
     path: Path | None = None
     trans: transform | None = None
 
 @dataclass
 class project_data:
-    entities: list[cloth | deformable_body | mjcf_rigidbody] | None = None
+    entities: list[cloth | deformable_body | mjcf_scene | rigid_mesh] | None = None
     viewer: str | None = None
 
 

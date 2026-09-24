@@ -85,6 +85,7 @@ class sim_frozen_cloth:
 class sim_rigidbody:
 
     def __init__(self, mesh, transform, use_frozen_cloth = False):
+        self._positions = np.array(mesh.get_positions(), copy=True)
         if use_frozen_cloth:
             self.sim_object = sim_frozen_cloth(mesh, transform)
         else:
@@ -115,3 +116,6 @@ class sim_rigidbody:
 
     def get_transform(self):
         return self.sim_object.get_transform()
+
+    def get_positions(self):
+        return _transform_positions(self._positions, self.get_transform())

@@ -1,0 +1,34 @@
+{
+    "project_data": {
+        "entities": [
+            {
+                "mjcf_scene": {
+                    "path": "assets/scene.xml"
+                }
+            },
+            {
+                "rigid_mesh":
+                {
+                    "path":"assets/holder.obj",
+                    "trans": {
+                        "transform": {
+                            "translation": [ 0, 0, 0 ]
+                        }
+                    }
+                }
+            },
+            {
+                "rigid_mesh":
+                {
+                    "path":"assets/panel.obj",
+                    "trans": {
+                        "transform": {
+                            "translation": [ 0, 0, 0.01 ]
+                        }
+                    }
+                }
+            }
+
+        ]
+    }
+}

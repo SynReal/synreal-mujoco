@@ -2,7 +2,7 @@
     "project_data": {
         "entities": [
             {
-                "mjcf_rigidbody": {
+                "mjcf_scene": {
                     "path": "assets/spring_panel.xml"
                 }
             }

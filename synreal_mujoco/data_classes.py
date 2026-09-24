@@ -17,6 +17,15 @@ class rigid_body_builder:
 
 
 @dataclass
+class rigid_mesh_builder:
+    translate: np.ndarray = field(default_factory=lambda: np.zeros(3))
+    quat: np.ndarray = field(default_factory=lambda: np.array([1., 0., 0., 0.]))
+    rgba: np.ndarray = field(default_factory=lambda: np.array([0.7, 0.75, 0.8, 1.]))
+    is_fixed: bool = False
+    attrib: sim.RigidBodyAttrib = field(default_factory=cloth_property.get_rigid_body_property_default)
+
+
+@dataclass
 class cloth_builder:
     translate = np.array([0,0,0])
     quat = np.array([1,0,0, 0])
@@ -68,6 +77,9 @@ class s3d_scene:
     mj_geom_index: List[int] = field(default_factory=list) # index of rigid body in mujoco, the order is the same as rigid_bodies    
     mj_mesh_index: List[int] = field(default_factory=list) # index of rigid body in mujoco, the order is the same as rigid_bodies    
     rigid_body_names: List[str] = field(default_factory=list)
+    # SynReal-driven meshes use render-only flexes, with no MuJoCo rigid body mapping.
+    rigid_meshes: list = field(default_factory=list)
+    rigid_mesh_flex_names: List[str] = field(default_factory=list)
     mapper : smj.s3d_mj_mapper = None
 
     sim_cloth: List[sim.Cloth] = field(default_factory=list)

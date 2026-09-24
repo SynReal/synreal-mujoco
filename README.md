@@ -34,8 +34,21 @@ to start the simulation. Closing the panel resumes simulation;
 closing the viewer closes the panel. Commands are polled at 20 Hz and small
 status updates at 10 Hz. To disable the panel use
 `project_runner().run(project_path, show_panel=False)`.
-Viewer selection, rigid transforms, and deformable rotation are read-only
+Viewer selection, MJCF scene transforms, and deformable rotation are read-only
 because the current runner does not implement these settings.
+
+`rigid_mesh` entities load mesh files as dynamic SynReal `sim_rigidbody` objects.
+Their optional `trans` applies translation and XYZ Euler rotation in radians.
+MuJoCo custom flexes render their vertices from the simulated rigid poses; these
+meshes are not driven by MuJoCo rigid bodies. Run the sample using the environment
+with SynReal and the forked MuJoCo installed:
+
+```shell
+python -m synreal_mujoco.project_runner synreal_mujoco/projects/rigid_mesh
+```
+
+Uncheck **Pause** in the project panel to run, or pass `--no-panel` to start
+simulation immediately without the editor.
 
 The panel has one public entry point:
 

@@ -61,9 +61,18 @@ class s3d_scene_stepper:
         self.scene.world.step_sim()
 
     def set_cloth_pos_s3d_2_mj(self, include_stress=True):
+        """Fetch SynReal outputs and update all render-only flex meshes."""
         self._fetch_s3d_outputs(include_stress)
         self._copy_cloth_positions_to_mujoco()
         self._copy_deformable_body_positions_to_mujoco()
+        self.set_rigidbody_pos_s3d_2_mj()
+
+    def set_rigidbody_pos_s3d_2_mj(self):
+        """Copy rigid mesh poses after fetching SynReal's Transforms output."""
+        for body, flex_name in zip(self.scene.rigid_meshes, self.scene.rigid_mesh_flex_names):
+            _mj_data_helper.set_flex_positions(
+                self.mujoco_model, self.mujoco_data, flex_name, body.get_positions(),
+            )
 
     #################  deformable body stress related methods
     def get_deformable_body_positions_in_rigidbody_frame(self, dfm_name, rigidbody_name):

@@ -12,10 +12,10 @@ from synreal_mujoco.s3d_scene_stepper import s3d_scene_stepper
 def _build_candidate(data, project_path, build_scene):
     if not isinstance(data, pdc.project_data) or not data.entities:
         raise ValueError('Project must contain entities.')
-    if sum(isinstance(entity, pdc.mjcf_rigidbody) for entity in data.entities) != 1:
+    if sum(isinstance(entity, pdc.mjcf_scene) for entity in data.entities) != 1:
         raise ValueError('Project must contain exactly one MJCF entity.')
     for entity in data.entities:
-        if not isinstance(entity, (pdc.mjcf_rigidbody, pdc.cloth, pdc.deformable_body)):
+        if not isinstance(entity, (pdc.mjcf_scene, pdc.cloth, pdc.deformable_body, pdc.rigid_mesh)):
             raise ValueError('Unsupported project entity.')
         if entity.path is None or not (project_path / entity.path).is_file():
             raise ValueError(f'File not found: {entity.path}')

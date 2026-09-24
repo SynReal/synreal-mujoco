@@ -46,7 +46,7 @@ class project_runner:
         return scene_builder
 
     def _dispatch_entity(self, entity, s3d_scene_builder, project_path: Path = Path('.')):
-        if isinstance(entity, pdc.mjcf_rigidbody):
+        if isinstance(entity, pdc.mjcf_scene):
             s3d_scene_builder.add_mjcf_rigidbodies((project_path / entity.path).resolve())
         elif isinstance(entity, pdc.deformable_body): 
             dfm_attrib = s3d_scene_builder.add_deformable_body_by_file((project_path / entity.path).resolve())
@@ -77,6 +77,11 @@ class project_runner:
             cloth_builder.attrib.yield_curvature = attrib.yield_curvature
             cloth_builder.attrib.volume_conserve_strength = attrib.volume_conserve_strength
             cloth_builder.attrib.frozen = attrib.frozen
+        elif isinstance(entity, pdc.rigid_mesh): 
+            rigid_mesh_builder = s3d_scene_builder.add_rigid_mesh((project_path / entity.path).resolve())
+            if entity.trans is not None:
+                rigid_mesh_builder.translate = np.array(entity.trans.translation, dtype=float, copy=True)
+                mujoco.mju_euler2Quat(rigid_mesh_builder.quat, np.asarray(entity.trans.euler_xyz, dtype=float), 'XYZ')
 
 
 
@@ -98,8 +103,13 @@ class project_runner:
 
 
 if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Run a SynReal/MuJoCo project.')
+    parser.add_argument('project', nargs='?', type=Path,
+                        default=Path(__file__).parent / 'projects' / 'piper_cloth')
+    parser.add_argument('--no-panel', action='store_true')
+
+    args = parser.parse_args()
     l_project_runner = project_runner()
-    cwd = Path(__file__).parent.resolve()
-    #project_path = cwd / 'projects' / 'deformable_body'
-    project_path = cwd / 'projects' / 'piper_cloth'
-    l_project_runner.run(project_path)
+    l_project_runner.run(args.project, show_panel=not args.no_panel)
